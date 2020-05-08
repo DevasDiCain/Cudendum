@@ -60,8 +60,9 @@ function createRegisterWindow() {
   //creamos la ventana De registro
   registerWindow = new BrowserWindow({
     width: 500,
-    height: 500,
+    height: 600,
     resizable: false,
+    frame: false,
     title: 'Registro',
     webPreferences: { nodeIntegration: true },
     defaultEncoding: 'UTF-8'

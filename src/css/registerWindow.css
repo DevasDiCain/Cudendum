@@ -3,8 +3,9 @@
     font-size: 27px;
     padding: 10px;
 }
-
+body{background-image: linear-gradient(#1d2986,#283592,#07115c);}
 .bigicon {
     font-size: 35px;
     color: #36A0FF;
 }
+#registerWindowExit{background-color:red;width:4%;text-align: center;margin-top:2%;}
