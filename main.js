@@ -21,6 +21,7 @@ app.on('ready', function () {
   //creamos la ventana
   mainWindow = new BrowserWindow({
     width: 1200,
+    icon: __dirname + '/cudendum.ico',
     webPreferences: { nodeIntegration: true },
     defaultEncoding: 'UTF-8',
   });

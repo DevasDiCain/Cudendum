@@ -47,7 +47,7 @@
                             <div class="form-group">
                                 <div class="col-md-12 text-center">
                                     <button type="button" class="btn btn-primary btn-lg" onclick={register()}>Submit</button>
-                                    <button type="submit" class="btn btn-primary btn-lg">Cancelar</button>
+                                    <button  class="btn btn-primary btn-lg" onclick={closeWindow()}>Cancelar</button>
                                 </div>
                             
                             </div>
@@ -62,22 +62,11 @@
         const electron = require('electron');
         const {ipcRenderer} = electron;
 
-        const form = document.querySelector('form');
-        form.addEventListener('submit', submitForm);
-
-        const divExit = document.getElementById('registerWindowExit');
-        divExit.addEventListener('click',closeWindow);
-
-        function submitForm(e){
-          e.preventDefault();
-            console.log(e);
-         ipcRenderer.send('closeRegisterWindow');
-        }
         function closeWindow(){
             ipcRenderer.send('closeRegisterWindow');
         }
         function register(){
-            ipcRenderer.send('closeRegisterWindow');
+            ipcRenderer.send('register');
         }
     </script>
 </body>
