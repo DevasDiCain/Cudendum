@@ -60,7 +60,7 @@ function createRegisterWindow() {
   //creamos la ventana De registro
   registerWindow = new BrowserWindow({
     width: 500,
-    height: 600,
+    height: 590,
     resizable: false,
     frame: false,
     title: 'Registro',
@@ -95,7 +95,13 @@ ipcMain.on('item:add', function (e, item) {
   mainWindow.webContents.send('item:add', item);
   registerWindow.close();
 })
-
+ipcMain.on('closeRegisterWindow',function(){
+  if(registerWindow != null)
+       registerWindow.close();
+})
+ipcMain.on('register',function(){
+  console.log("registrando");
+})
 
 //************************************************************************** */
 //--------------------------PLANTILLAS-MENUS----------------------------------
@@ -184,3 +190,13 @@ if (process.env.NODE_ENV !== 'production') {
 //--------------------------COMUNICACIÓN ENTRE PROCESOS----------------------
 //*************************************************************************** */
 
+//************************************************************************** */
+//--------------------------FUNCIONES BÁSICAS----------------------
+//*************************************************************************** */
+
+function closeWindow(){
+  registerWindow.close();
+}
+function register(){
+  console.log("registrando");
+}
