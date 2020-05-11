@@ -1,11 +1,3 @@
-*{ font-family: 'Andika';padding: 0;margin:0;}
-body{background-image: linear-gradient(#1d2986,#283592,#07115c);}
-#title{width:200px;margin:auto;font-size:2.5em;color:#eb3f79;}
-#menuLateral{width:200px;height:480px;background-color:#eb3f79;display:flex;flex-direction:column;}
-#menuLateral div{width:100%; height:25%;margin:auto;font-size:2em; padding:1em;}
-#menuLateral div:hover{background-color:#e01b84;}
-#contenido{display:flex;height:450px}
-#footer{height:50px;width:100%;background-color: black;;}
 @font-face {
     font-family: 'WebSymbolsRegular';
     src: url('websymbols/websymbols-regular-webfont.eot');
@@ -85,4 +77,3 @@ a{display:flex;}
         transform: translateY(0%);
     }
 }
-
