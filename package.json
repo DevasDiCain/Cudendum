@@ -23,6 +23,9 @@
   },
   "homepage": "https://github.com/DevasDiCain/Cudendum.git%20%20%20#readme",
   "dependencies": {
+    "jquery": "^3.5.1",
+    "js-md5": "^0.7.3",
+    "jsdom": "^16.2.2",
     "mysql": "^2.18.1"
   },
   "devDependencies": {
