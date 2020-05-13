@@ -9,3 +9,8 @@
 #footer{height:50px;width:100%;background-color: black;display:flex;justify-content:space-around;position:absolute;bottom:0;}
 #footer span{font-size:2em;color:white;}
 .content{margin:0;}
+#mostrarUsuario{color:#1d2986;font-size:1.5em;}
+#cerrarSesión{cursor: pointer;color:gold;font-size: 0.8em;}
+#menTitl{font-size:1em;}
+#escondido{display:none;}
+#cuerpo{width:100%;height: 100%;}

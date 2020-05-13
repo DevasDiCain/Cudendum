@@ -86,13 +86,10 @@
             const telefono = document.querySelector('#telefono').value;
 
             if(usuario == "" ||  clave == "" ||  nombre == "" ||  apellidos == "" ||  email == "" ||  telefono == "")
-            {
                 ipcRenderer.send('empty-field');
-            }
             else
-            {
                 ipcRenderer.send('register',usuario,clave,nombre,apellidos,email,telefono);
-            }
+
            
         }
     </script>

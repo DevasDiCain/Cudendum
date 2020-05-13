@@ -26,7 +26,8 @@
     "jquery": "^3.5.1",
     "js-md5": "^0.7.3",
     "jsdom": "^16.2.2",
-    "mysql": "^2.18.1"
+    "mysql": "^2.18.1",
+    "mysql2": "^2.1.0"
   },
   "devDependencies": {
     "electron": "^8.2.5"
