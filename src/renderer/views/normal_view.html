@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="../../css/vista_normal.css" />
-    <title>NORMAL</title>
+    <link rel="stylesheet" href="../../css/normal_view.css" />
+    <title>Cudendum</title>
 </head>
 
 <body>
@@ -74,6 +74,7 @@
     <script>
           const electron = require('electron');
           const { ipcRenderer } = electron;
+          let  profileShowed = false;
 
         //Se guarda el usuario para mostrar en la interfaz gráfica
         window.onbeforeunload = function() {
@@ -98,8 +99,26 @@
                 $("#cerrarSesion").click(function(){
                     ipcRenderer.send("sesion-off");
                 });
+                //COMUNICACIÓN ENTRE PROCESOS
                 $("#goToProfile").click(function(){
-                    ipcRenderer.send("goToProfile");
+                    if(!profileShowed)
+                    {
+                        profileShowed=true;
+                        let user = document.getElementById("mostrarUsuario").innerHTML;
+                        ipcRenderer.send("goToProfile",user);
+                    }
+                    else
+                    {
+                        $("#cuerpo").empty();
+                        profileShowed=false;
+                    }
+                   
+                });
+                ipcRenderer.on("showProfile",function(fallo,rows){
+                    $("#cuerpo").append('<div id="card"> <div id="cardTitle">Perfil</div><div id="profile"><div class="usuario"><label>Nombre de usuario: </label><span>'+rows["usuario"]+'</span></div>'+
+                                        '<div class="nombre"><label>Nombre:  </label><span>'+rows["nombre"]+" "+rows["apellidos"]+'</span></div>'+
+                                        '<div class="email"><label>Email: </label><span>'+rows["email"]+'</span></div><div class="tipo"><label>Tipo: </label><span>'+rows["tipo"]+'</span></div>'+
+                                        '<div class="tlf"><label>Teléfono: </label><span>'+rows["telefono"]+'</span></div></div></div>');
                 });
         });
      

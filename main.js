@@ -2,6 +2,25 @@
 const electron = require('electron');
 const url = require('url');
 const path = require('path');
+const mysql = require('mysql')
+const md5 = require('js-md5');
+
+
+//Session Global Variables
+const almacen = [];
+
+
+//$.getScript("https://rezitech.github.com/stash/stash.min.js");//Sesiones
+
+const connection = mysql.createConnection({
+  host: '127.0.0.1',
+  port: '3306',
+  user: 'root',
+  password: '',
+  database: 'cudendum'
+})
+var jsdom = require('jsdom');
+$ = require('jquery')(new jsdom.JSDOM().window)
 
 const { app, BrowserWindow, Menu, ipcMain } = electron;
 
@@ -18,9 +37,19 @@ let registerWindow;
 
 //Escuchar la app cuando esté lista
 app.on('ready', function () {
-  //creamos la ventana
+  connection.connect(function (err) {
+    if (err) {
+      console.log(err.code)
+      console.log(err.fatal)
+    }
+  })
+  //----------------------------------Creación de las ventanas principales------------------------------------------------
+
+  //creamos la ventana principal
   mainWindow = new BrowserWindow({
     width: 1200,
+    height: 800,
+    resizable: false,
     icon: __dirname + '/cudendum.ico',
     webPreferences: { nodeIntegration: true },
     defaultEncoding: 'UTF-8',
@@ -29,7 +58,7 @@ app.on('ready', function () {
   //cargamos el html en la ventana
 
   mainWindow.loadURL(url.format({
-    pathname: path.join(__dirname, 'src/renderer/mainWindow.html'),
+    pathname: path.join(__dirname, 'src/renderer/loginWindow.html'),
     protocol: 'file:',
     slashes: true
   }));
@@ -45,7 +74,11 @@ app.on('ready', function () {
   ------------------------------------------------------------------------------------------*/
   //Cuando se cierre la ventana principal se cierra la app entera
   mainWindow.on('closed', function () {
+    connection.end(function () {
+      //Aquí se cierra la conexión 
+    })
     app.quit();
+
   });
   //Capturar click derecho para menú contextual
   mainWindow.webContents.on('context-menu', (e, args) => {
@@ -61,7 +94,7 @@ function createRegisterWindow() {
   //creamos la ventana De registro
   registerWindow = new BrowserWindow({
     width: 500,
-    height: 590,
+    height: 800,
     resizable: false,
     frame: false,
     title: 'Registro',
@@ -91,18 +124,125 @@ function createRegisterWindow() {
 //*************************************************************************** */
 
 
-// Capturar evento en renderer (item:add)
-ipcMain.on('item:add', function (e, item) {
-  mainWindow.webContents.send('item:add', item);
+// Capturar evento de cierre de ventana de registro
+ipcMain.on('closeRegisterWindow', function () {
+  if (registerWindow != null)
+    registerWindow.close();
+})
+
+ipcMain.on('empty-field', function () {
   registerWindow.close();
+  console.log("Error Registro con campos vacios");
 })
-ipcMain.on('closeRegisterWindow',function(){
-  if(registerWindow != null)
-       registerWindow.close();
+//CAPTURA DE EVENTO DE REGISTRO
+ipcMain.on('register', function (error, usuario, clave, nombre, apellidos, email, telefono) {
+  register(usuario, clave, nombre, apellidos, email, telefono).then(function(){//SE REGISTRA Y HASTA QUE NO SE LLEVE A CABO NO SE AVANZA
+    registerWindow.close();
+    login(usuario,clave).then(function(rows) {//UNA VEZ SE REGISTRE LOGUEAMOS Y SI TODO VA BIEN AVANZAMOS
+         console.log(rows.length);
+          if (rows.length >= 1) {
+          let user =  getSessionValue("usuario").then(function(resolve){console.log("get Usuario->"+resolve)}).catch((err)=>setImmediate(()=>{console.log(err)}))
+          let password = getSessionValue("clave").then(function(resolve){console.log("get clave->"+resolve)}).catch((err)=>setImmediate(()=>{console.log(err)}))
+          let time = getSessionValue("tiempo").then(function(resolve){console.log("get tiempo->"+resolve)}).catch((err)=>setImmediate(()=>{console.log(err)}))
+            if(typeof user !="undefined" && typeof password !="undefined" && typeof time !="undefined")
+              {
+                    //Se carga la vista normal
+                mainWindow.loadURL(url.format({
+                  pathname: path.join(__dirname, 'src/renderer/views/normal_view.html'),
+                  protocol: 'file:',
+                  slashes: true
+                }));
+                //necesario para acceder al dom una vez EXISTA
+                mainWindow.webContents.once('did-navigate', () => {
+                  mainWindow.webContents.once('dom-ready', () => {
+                    mainWindow.webContents.executeJavaScript("console.log(document.getElementById('mostrarUsuario').innerHTML='" + usuario + "')")
+                  })
+                })
+              }
+              else
+              {
+                console.log("Fallo en la sesión");//Aquí generar popUp de error
+              }
+          }
+          else {
+            console.log("Fallo en el loggin");//Aquí generar popUp de error
+          }
+     }).catch((err) => setImmediate(() => { console.log(err) ; }));
+  }).catch((err) => setImmediate(() => { console.log(err) ; }));//Aquí recojo el error pero sino lo lanzo
+
+ 
 })
-ipcMain.on('register',function(){
-  console.log("registrando");
+
+ipcMain.on('go-register', function () {
+  createRegisterWindow();
+  Menu.setApplicationMenu(registerMenu);
 })
+
+ipcMain.on('login', function (error,usuario,clave) {
+  login(usuario,clave).then(function(rows) {
+    console.log(rows);
+    if (rows.length >= 1) {
+     let user =  getSessionValue("usuario").then(function(resolve){console.log("get Usuario->"+resolve)}).catch((err)=>setImmediate(()=>{console.log(err)}))
+     let password = getSessionValue("clave").then(function(resolve){console.log("get clave->"+resolve)}).catch((err)=>setImmediate(()=>{console.log(err)}))
+     let time = getSessionValue("tiempo").then(function(resolve){console.log("get tiempo->"+resolve)}).catch((err)=>setImmediate(()=>{console.log(err)}))
+      if(typeof user !="undefined" && typeof password !="undefined" && typeof time !="undefined")
+        {
+              //Se carga la vista normal
+          mainWindow.loadURL(url.format({
+            pathname: path.join(__dirname, 'src/renderer/views/normal_view.html'),
+            protocol: 'file:',
+            slashes: true
+          }));
+          //necesario para acceder al dom una vez EXISTA
+          mainWindow.webContents.once('did-navigate', () => {
+            mainWindow.webContents.once('dom-ready', () => {
+              mainWindow.webContents.executeJavaScript("console.log(document.getElementById('mostrarUsuario').innerHTML='" + usuario + "')")
+            })
+          })
+        }
+        else
+        {
+          console.log("Fallo en la sesión");//Aquí generar popUp de error
+        }
+    }
+    else {
+      console.log("Fallo en el loggin");//Aquí generar popUp de error
+    }
+}).catch((err) => setImmediate(() => { console.log(err) ; }));//Aquí recojo el error pero sino lo lanzo
+})
+
+ipcMain.on("sesion-off",function(){
+    setSessionValue("usuario","undefined");
+    setSessionValue("clave","undefined");
+    setSessionValue("tiempo","undefined");
+    let user,password,time;
+    getSessionValue("usuario").then(function(resolve){user = resolve}).catch((err)=>setImmediate(()=>{console.log(err)}))
+    getSessionValue("clave").then(function(resolve){password = resolve}).catch((err)=>setImmediate(()=>{console.log(err)}))
+    getSessionValue("tiempo").then(function(resolve){time = resolve}).catch((err)=>setImmediate(()=>{console.log(err)}))
+
+     if(typeof user !="undefined" && typeof password !="undefined" && typeof time !="undefined")
+       {
+           console.log("ERROR AL DESTRUIR LAS SESIONES");
+       }
+       else
+       {
+         console.log("bien");
+           //Se carga la vista normal
+           mainWindow.loadURL(url.format({
+            pathname: path.join(__dirname, 'src/renderer/loginWindow.html'),
+            protocol: 'file:',
+            slashes: true
+          }));
+       }
+});
+
+ipcMain.on("goToProfile",function(event,user){
+     get("usuarios","usuario",user).then(function(rows){
+      event.reply('showProfile',rows)//Los mando al renderer
+  }).catch((err)=>setImmediate(()=>{console.log(err)}))//Obtengo los datos 
+ 
+});
+
 
 //************************************************************************** */
 //--------------------------PLANTILLAS-MENUS----------------------------------
@@ -112,31 +252,16 @@ ipcMain.on('register',function(){
 //Que no es más que un array de objetos
 const mainMenuTemplate = [
   {
-    label: 'Acceso',
-    submenu: [
-      {
-        label: 'Registro',
-        click() {
-          createRegisterWindow();
-          Menu.setApplicationMenu(registerMenu);
-        }
-      },
-      {
-        label: 'Iniciar',
-        click() {
-          mainWindow.webContents.send('item:clear');
-        }
-      },
-      {
-        label: 'Salir',
-        //Aquí añado un shortcut, dependiendo del so donde se ejecute
-        accelerator: process.plataform == 'darwin' ? 'Command+Q' : 'Ctrl+Q',
-        click() {
-          app.quit();
-        }
-      }
-    ]
+    label: 'Salir',
+    //Aquí añado un shortcut, dependiendo del so donde se ejecute
+    accelerator: process.plataform == 'darwin' ? 'Command+Q' : 'Ctrl+Q',
+    click() {
+      app.quit();
+      connection.end(function () {
+        //Aquí se cierra la conexión 
+      })
   }
+}
 ];
 
 //
@@ -194,10 +319,107 @@ if (process.env.NODE_ENV !== 'production') {
 //************************************************************************** */
 //--------------------------FUNCIONES BÁSICAS----------------------
 //*************************************************************************** */
+function getSessionValue(key) {
+  return new Promise(function(resolve, reject) {
+    mainWindow.webContents.executeJavaScript('localStorage.getItem("'+key+'")',true).then((result)=>{
+      if(typeof result != "undefined")
+          return resolve(result);
+      else
+          return reject("Esta variable de sesión no existe");
+    }).catch((err)=>setImmediate(()=>{console.log(err)}))
 
-function closeWindow(){
-  registerWindow.close();
+  })
 }
-function register(){
-  console.log("registrando");
+function setSessionValue(key, value) {
+
+  return new Promise(function(resolve, reject) {
+    mainWindow.webContents.executeJavaScript('localStorage.setItem("'+key+'","'+value+'")',true);
+
+    mainWindow.webContents.executeJavaScript("localStorage.getItem('"+key+"')",true).then((result)=>{
+      if(typeof result != "undefined" && result==value)
+          return resolve(result);
+      else
+          return reject("Esta variable de sesión no existe");
+          
+    }).catch((err)=>setImmediate(()=>{console.log(err)}))
+
+  })
 }
+
+
+
+
+
+
+
+//************************************************************************** */
+//--------------------------CONSULTAS A LA BASE DE DATOS----------------------
+//*************************************************************************** */
+
+//------GET--------------
+function get(table, element, value) {
+  return new Promise(function(resolve, reject) {
+    if (isNaN(value)) {//soluciona el problema de buscar por un string o id
+      value = "'" + value + "'"
+    }
+    let query = "SELECT * FROM " + table + " where " + element + " = " + value
+    console.log(query);
+  
+    connection.query(query, function (err, rows, fields) {
+      if (err) {
+        return reject(err);
+    }
+    let row = rows[0];
+    resolve(row);
+  
+    })
+  })
+}
+
+
+//--------------REGISTRO--------
+function register(usuario, clave, nombre, apellidos, email, telefono) {
+  return new Promise(function(resolve, reject) {
+    let clave_encriptada = md5(clave);
+    let query = "INSERT INTO `usuarios` ( `usuario`, `clave`, `nombre`, `apellidos`, `email`, `tipo`,  `telefono`) VALUES ('" + usuario + "','" + clave_encriptada + "', '" + nombre + "', '" + apellidos + "', '" + email + "', 'normal', '" + telefono + "');"
+    console.log(query);
+
+    connection.query(query, function (err, rows, fields) {
+      if (err) {
+        return reject(err);
+    }
+    resolve(rows);
+
+  })
+})
+}
+
+//----------Login------------
+function login(usuario, clave) {
+
+  return new Promise(function(resolve, reject) {
+    clave = md5(clave);
+
+    let query = "SELECT * FROM usuarios where usuario='" + usuario + "' and clave = '" + clave + "'"
+    console.log(query);
+  
+    connection.query(query, function (err, rows, fields) {
+      if (err) {
+        return reject(err);
+    }
+    let today = new Date();
+    setSessionValue("usuario",usuario);
+    setSessionValue("clave",clave);
+    setSessionValue("tiempo",today.getHours());
+    resolve(rows);
+  
+    })
+  })
+}
+
+
+
+
+
+
+
