@@ -129,120 +129,219 @@ ipcMain.on('closeRegisterWindow', function () {
   if (registerWindow != null)
     registerWindow.close();
 })
-
+//ERRORES
 ipcMain.on('empty-field', function () {
   registerWindow.close();
   console.log("Error Registro con campos vacios");
 })
+ipcMain.on('empty-field-edit', function () {
+  console.log("Error EDIT, campos vacíos");
+})
 //CAPTURA DE EVENTO DE REGISTRO
 ipcMain.on('register', function (error, usuario, clave, nombre, apellidos, email, telefono) {
-  register(usuario, clave, nombre, apellidos, email, telefono).then(function(){//SE REGISTRA Y HASTA QUE NO SE LLEVE A CABO NO SE AVANZA
-    registerWindow.close();
-    login(usuario,clave).then(function(rows) {//UNA VEZ SE REGISTRE LOGUEAMOS Y SI TODO VA BIEN AVANZAMOS
-         console.log(rows.length);
+  get("usuarios", "usuario", usuario).then(function (rows) {//Antes de registrar compruebo que no existe una cuenta con el mismo usuario
+    if (typeof rows == "undefined") {
+      register(usuario, clave, nombre, apellidos, email, telefono).then(function () {//SE REGISTRA Y HASTA QUE NO SE LLEVE A CABO NO SE AVANZA
+        registerWindow.close();
+        login(usuario, clave).then(function (rows) {//UNA VEZ SE REGISTRE LOGUEAMOS Y SI TODO VA BIEN AVANZAMOS
+          console.log(rows.length);
           if (rows.length >= 1) {
-          let user =  getSessionValue("usuario").then(function(resolve){console.log("get Usuario->"+resolve)}).catch((err)=>setImmediate(()=>{console.log(err)}))
-          let password = getSessionValue("clave").then(function(resolve){console.log("get clave->"+resolve)}).catch((err)=>setImmediate(()=>{console.log(err)}))
-          let time = getSessionValue("tiempo").then(function(resolve){console.log("get tiempo->"+resolve)}).catch((err)=>setImmediate(()=>{console.log(err)}))
-            if(typeof user !="undefined" && typeof password !="undefined" && typeof time !="undefined")
-              {
-                    //Se carga la vista normal
-                mainWindow.loadURL(url.format({
-                  pathname: path.join(__dirname, 'src/renderer/views/normal_view.html'),
-                  protocol: 'file:',
-                  slashes: true
-                }));
-                //necesario para acceder al dom una vez EXISTA
-                mainWindow.webContents.once('did-navigate', () => {
-                  mainWindow.webContents.once('dom-ready', () => {
-                    mainWindow.webContents.executeJavaScript("console.log(document.getElementById('mostrarUsuario').innerHTML='" + usuario + "')")
-                  })
+            let user = getSessionValue("usuario").then(function (resolve) { console.log("get Usuario->" + resolve) }).catch((err) => setImmediate(() => { console.log(err) }))
+            let password = getSessionValue("clave").then(function (resolve) { console.log("get clave->" + resolve) }).catch((err) => setImmediate(() => { console.log(err) }))
+            let time = getSessionValue("tiempo").then(function (resolve) { console.log("get tiempo->" + resolve) }).catch((err) => setImmediate(() => { console.log(err) }))
+            if (typeof user != "undefined" && typeof password != "undefined" && typeof time != "undefined") {
+              //Se carga la vista normal
+              mainWindow.loadURL(url.format({
+                pathname: path.join(__dirname, 'src/renderer/views/normal_view.html'),
+                protocol: 'file:',
+                slashes: true
+              }));
+              //necesario para acceder al dom una vez EXISTA
+              mainWindow.webContents.once('did-navigate', () => {
+                mainWindow.webContents.once('dom-ready', () => {
+                  mainWindow.webContents.executeJavaScript("console.log(document.getElementById('mostrarUsuario').innerHTML='" + usuario + "')")
                 })
-              }
-              else
-              {
-                console.log("Fallo en la sesión");//Aquí generar popUp de error
-              }
+              })
+            }
+            else {
+              console.log("Fallo en la sesión");//Aquí generar popUp de error
+            }
           }
           else {
             console.log("Fallo en el loggin");//Aquí generar popUp de error
           }
-     }).catch((err) => setImmediate(() => { console.log(err) ; }));
-  }).catch((err) => setImmediate(() => { console.log(err) ; }));//Aquí recojo el error pero sino lo lanzo
-
- 
+        }).catch((err) => setImmediate(() => { console.log(err); }));
+      }).catch((err) => setImmediate(() => { console.log(err); }));//Aquí recojo el error pero sino lo lanzo
+    }
+    else {
+      console.log("ERROR- El usuario '" + usuario + "' ya se encuentra en la base de datos");
+    }
+  }).catch((err) => setImmediate(() => { console.log(err) }))
 })
-
+//Ir al registro
 ipcMain.on('go-register', function () {
   createRegisterWindow();
   Menu.setApplicationMenu(registerMenu);
 })
-
-ipcMain.on('login', function (error,usuario,clave) {
-  login(usuario,clave).then(function(rows) {
-    console.log(rows);
-    if (rows.length >= 1) {
-     let user =  getSessionValue("usuario").then(function(resolve){console.log("get Usuario->"+resolve)}).catch((err)=>setImmediate(()=>{console.log(err)}))
-     let password = getSessionValue("clave").then(function(resolve){console.log("get clave->"+resolve)}).catch((err)=>setImmediate(()=>{console.log(err)}))
-     let time = getSessionValue("tiempo").then(function(resolve){console.log("get tiempo->"+resolve)}).catch((err)=>setImmediate(()=>{console.log(err)}))
-      if(typeof user !="undefined" && typeof password !="undefined" && typeof time !="undefined")
-        {
+//LOGUEAR
+ipcMain.on('login', function (event, usuario, clave) {
+  if (usuario.includes("'") || usuario.includes("<") || usuario.includes(">") || usuario.includes("*"))//Control de inyeccion SQL
+  {
+    console.log("Pillado tratando de hacer inyección SQL");//Aquí generar popUp de error
+  }
+  else {
+    login(usuario, clave).then(function (rows) {
+      if (rows.length >= 1) {
+        let user = getSessionValue("usuario").then(function (resolve) { console.log("get Usuario->" + resolve) }).catch((err) => setImmediate(() => { console.log(err) }))
+        let password = getSessionValue("clave").then(function (resolve) { console.log("get clave->" + resolve) }).catch((err) => setImmediate(() => { console.log(err) }))
+        let time = getSessionValue("tiempo").then(function (resolve) { console.log("get tiempo->" + resolve) }).catch((err) => setImmediate(() => { console.log(err) }))
+        let tipo = getSessionValue("tipo").then(function (resolve) {
+          if (typeof user != "undefined" && typeof password != "undefined" && typeof time != "undefined") {
+            if (resolve == "normal") {
               //Se carga la vista normal
-          mainWindow.loadURL(url.format({
-            pathname: path.join(__dirname, 'src/renderer/views/normal_view.html'),
-            protocol: 'file:',
-            slashes: true
-          }));
-          //necesario para acceder al dom una vez EXISTA
-          mainWindow.webContents.once('did-navigate', () => {
-            mainWindow.webContents.once('dom-ready', () => {
-              mainWindow.webContents.executeJavaScript("console.log(document.getElementById('mostrarUsuario').innerHTML='" + usuario + "')")
-            })
-          })
-        }
-        else
-        {
-          console.log("Fallo en la sesión");//Aquí generar popUp de error
-        }
+              mainWindow.loadURL(url.format({
+                pathname: path.join(__dirname, 'src/renderer/views/normal_view.html'),
+                protocol: 'file:',
+                slashes: true
+              }));
+              //necesario para acceder al dom una vez EXISTA
+              mainWindow.webContents.once('did-navigate', () => {
+                mainWindow.webContents.once('dom-ready', () => {
+                  mainWindow.webContents.executeJavaScript("console.log(document.getElementById('mostrarUsuario').innerHTML='" + usuario + "')")
+                })
+              })
+            }
+            if (resolve == "admin") {
+              //Se carga la vista admin
+              mainWindow.loadURL(url.format({
+                pathname: path.join(__dirname, 'src/renderer/views/admin_view.html'),
+                protocol: 'file:',
+                slashes: true
+              }));
+              //necesario para acceder al dom una vez EXISTA
+              mainWindow.webContents.once('did-navigate', () => {
+                mainWindow.webContents.once('dom-ready', () => {
+                  mainWindow.webContents.executeJavaScript("console.log(document.getElementById('mostrarUsuario').innerHTML='" + usuario + "')")
+                })
+              })
+            }
+            if (resolve == "cliente") {
+              //Se carga la vista cliente
+              mainWindow.loadURL(url.format({
+                pathname: path.join(__dirname, 'src/renderer/views/guess_view.html'),
+                protocol: 'file:',
+                slashes: true
+              }));
+              //necesario para acceder al dom una vez EXISTA
+              mainWindow.webContents.once('did-navigate', () => {
+                mainWindow.webContents.once('dom-ready', () => {
+                  mainWindow.webContents.executeJavaScript("console.log(document.getElementById('mostrarUsuario').innerHTML='" + usuario + "')")
+                })
+              })
+            }
+
+          }
+          else {
+            console.log("Fallo en la sesión");//Aquí generar popUp de error
+          }
+        }).catch((err) => setImmediate(() => { console.log(err) }))
+
+           //Se carga la vista de carga
+              mainWindow.loadURL(url.format({
+                pathname: path.join(__dirname, 'src/renderer/views/chargeLogin_view.html'),
+                protocol: 'file:',
+                slashes: true
+              }));
+      }
+      else {
+        event.reply("errorLogin");
+        console.log("Fallo en el loggin");//Aquí generar popUp de error
+      }
+    }).catch((err) => setImmediate(() => { console.log(err); }));//Aquí recojo el error pero sino lo lanzo
+  }
+})
+//CERRAR SESIÓN
+ipcMain.on("sesion-off", function () {
+  setSessionValue("usuario", "undefined");
+  setSessionValue("clave", "undefined");
+  setSessionValue("tiempo", "undefined");
+  let user, password, time;
+  getSessionValue("usuario").then(function (resolve) { user = resolve }).catch((err) => setImmediate(() => { console.log(err) }))
+  getSessionValue("clave").then(function (resolve) { password = resolve }).catch((err) => setImmediate(() => { console.log(err) }))
+  getSessionValue("tiempo").then(function (resolve) { time = resolve }).catch((err) => setImmediate(() => { console.log(err) }))
+
+  if (typeof user != "undefined" && typeof password != "undefined" && typeof time != "undefined") {
+    console.log("ERROR AL DESTRUIR LAS SESIONES");
+  }
+  else {
+    console.log("bien");
+    //Se carga la vista normal
+    mainWindow.loadURL(url.format({
+      pathname: path.join(__dirname, 'src/renderer/loginWindow.html'),
+      protocol: 'file:',
+      slashes: true
+    }));
+  }
+});
+//IR AL PERFIL
+ipcMain.on("goToProfile", function (event, user) {
+  get("usuarios", "usuario", user).then(function (rows) {//Obtengo los datos 
+    event.reply('showProfile', rows)//Los mando al renderer
+  }).catch((err) => setImmediate(() => { console.log(err) }))
+
+});
+//MOSTRAR EDICIÓN DE PERFIL
+ipcMain.on("showEditProfile", function (event, user) {
+  get("usuarios", "usuario", user).then(function (rows) {//Obtengo los datos 
+    event.reply('showEditProfile', rows)//Los mando al renderer
+  }).catch((err) => setImmediate(() => { console.log(err) }))
+})
+//MODIFICAR EL PERFIL
+ipcMain.on("editProfile", function (event, usuario, clave, nombre, apellido, email, telefono) {
+  get("usuarios", "usuario", usuario).then(function (rows) {//Obtengo los datos 
+    let query = "";
+    if (clave == "") {
+      let oldPassword = rows["clave"];
+      query = "UPDATE usuarios SET usuario='" + usuario + "',clave='" + oldPassword + "',nombre='" + nombre + "',apellidos='" + apellido + "',email='" + email + "',telefono='" + telefono + "' WHERE usuario = '" + rows["usuario"] + "' and clave = '" + rows["clave"] + "'";
+      updateUser(query, usuario, oldPassword).then(function (rows) {
+        console.log("pasa");
+        event.reply("editCorrect");
+      }).catch((err) => setImmediate(() => { console.log(err) }))
     }
     else {
-      console.log("Fallo en el loggin");//Aquí generar popUp de error
+      clave = md5(clave);
+      query = "UPDATE usuarios SET usuario='" + usuario + "',clave='" + clave + "',nombre='" + nombre + "',apellidos='" + apellido + "',email='" + email + "',telefono='" + telefono + "' WHERE usuario = '" + rows["usuario"] + "' and clave = '" + rows["clave"] + "'";
+      updateUser(query, usuario, clave).then(function (rows) {
+        event.reply("editCorrect");
+      }).catch((err) => setImmediate(() => { console.log(err) }))
     }
-}).catch((err) => setImmediate(() => { console.log(err) ; }));//Aquí recojo el error pero sino lo lanzo
+
+
+
+
+
+  }).catch((err) => setImmediate(() => { console.log(err) }))
 })
-
-ipcMain.on("sesion-off",function(){
-    setSessionValue("usuario","undefined");
-    setSessionValue("clave","undefined");
-    setSessionValue("tiempo","undefined");
-    let user,password,time;
-    getSessionValue("usuario").then(function(resolve){user = resolve}).catch((err)=>setImmediate(()=>{console.log(err)}))
-    getSessionValue("clave").then(function(resolve){password = resolve}).catch((err)=>setImmediate(()=>{console.log(err)}))
-    getSessionValue("tiempo").then(function(resolve){time = resolve}).catch((err)=>setImmediate(()=>{console.log(err)}))
-
-     if(typeof user !="undefined" && typeof password !="undefined" && typeof time !="undefined")
-       {
-           console.log("ERROR AL DESTRUIR LAS SESIONES");
-       }
-       else
-       {
-         console.log("bien");
-           //Se carga la vista normal
-           mainWindow.loadURL(url.format({
+//Elimitar cuenta
+ipcMain.on("deleteAccount", function (event,user) { 
+  mainWindow.webContents.executeJavaScript('confirm("¿Estás seguro que desea eliminar su cuenta?");').then((result) => {
+      if(result)
+      {
+        deleteAccount(user).then(function () {
+          mainWindow.loadURL(url.format({
             pathname: path.join(__dirname, 'src/renderer/loginWindow.html'),
             protocol: 'file:',
             slashes: true
           }));
-       }
-});
-
-ipcMain.on("goToProfile",function(event,user){
-     get("usuarios","usuario",user).then(function(rows){
-      event.reply('showProfile',rows)//Los mando al renderer
-  }).catch((err)=>setImmediate(()=>{console.log(err)}))//Obtengo los datos 
- 
-});
-
+        }).catch((err) => setImmediate(() => { console.log(err) }))
+      }
+      else
+      {
+        console.log("no eliminar");
+      }
+  }).catch((err) => setImmediate(() => { console.log(err) }))
+})
+ipcMain.on("needHelp", function (user) { })
 
 //************************************************************************** */
 //--------------------------PLANTILLAS-MENUS----------------------------------
@@ -260,8 +359,8 @@ const mainMenuTemplate = [
       connection.end(function () {
         //Aquí se cierra la conexión 
       })
+    }
   }
-}
 ];
 
 //
@@ -313,35 +412,34 @@ if (process.env.NODE_ENV !== 'production') {
 
 
 //************************************************************************** */
-//--------------------------COMUNICACIÓN ENTRE PROCESOS----------------------
-//*************************************************************************** */
+//--------------------------COMUNICACIÓN ENTRE PROCESOS----------------------*
+//****************************************************************************/
 
 //************************************************************************** */
-//--------------------------FUNCIONES BÁSICAS----------------------
-//*************************************************************************** */
+//--------------------------FUNCIONES BÁSICAS--------------------------------*
+//****************************************************************************/
 function getSessionValue(key) {
-  return new Promise(function(resolve, reject) {
-    mainWindow.webContents.executeJavaScript('localStorage.getItem("'+key+'")',true).then((result)=>{
-      if(typeof result != "undefined")
-          return resolve(result);
+  return new Promise(function (resolve, reject) {
+    mainWindow.webContents.executeJavaScript('localStorage.getItem("' + key + '")', true).then((result) => {
+      if (typeof result != "undefined")
+        return resolve(result);
       else
-          return reject("Esta variable de sesión no existe");
-    }).catch((err)=>setImmediate(()=>{console.log(err)}))
+        return reject("Esta variable de sesión no existe");
+    }).catch((err) => setImmediate(() => { console.log(err) }))
 
   })
 }
 function setSessionValue(key, value) {
+  return new Promise(function (resolve, reject) {
+    mainWindow.webContents.executeJavaScript('localStorage.setItem("' + key + '","' + value + '")', true);
 
-  return new Promise(function(resolve, reject) {
-    mainWindow.webContents.executeJavaScript('localStorage.setItem("'+key+'","'+value+'")',true);
-
-    mainWindow.webContents.executeJavaScript("localStorage.getItem('"+key+"')",true).then((result)=>{
-      if(typeof result != "undefined" && result==value)
-          return resolve(result);
+    mainWindow.webContents.executeJavaScript("localStorage.getItem('" + key + "')", true).then((result) => {
+      if (typeof result != "undefined" && result == value)
+        return resolve(result);
       else
-          return reject("Esta variable de sesión no existe");
-          
-    }).catch((err)=>setImmediate(()=>{console.log(err)}))
+        return reject("Esta variable de sesión no existe");
+
+    }).catch((err) => setImmediate(() => { console.log(err) }))
 
   })
 }
@@ -358,20 +456,20 @@ function setSessionValue(key, value) {
 
 //------GET--------------
 function get(table, element, value) {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function (resolve, reject) {
     if (isNaN(value)) {//soluciona el problema de buscar por un string o id
       value = "'" + value + "'"
     }
     let query = "SELECT * FROM " + table + " where " + element + " = " + value
     console.log(query);
-  
+
     connection.query(query, function (err, rows, fields) {
       if (err) {
         return reject(err);
-    }
-    let row = rows[0];
-    resolve(row);
-  
+      }
+      let row = rows[0];
+      resolve(row);
+
     })
   })
 }
@@ -379,7 +477,7 @@ function get(table, element, value) {
 
 //--------------REGISTRO--------
 function register(usuario, clave, nombre, apellidos, email, telefono) {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function (resolve, reject) {
     let clave_encriptada = md5(clave);
     let query = "INSERT INTO `usuarios` ( `usuario`, `clave`, `nombre`, `apellidos`, `email`, `tipo`,  `telefono`) VALUES ('" + usuario + "','" + clave_encriptada + "', '" + nombre + "', '" + apellidos + "', '" + email + "', 'normal', '" + telefono + "');"
     console.log(query);
@@ -387,37 +485,80 @@ function register(usuario, clave, nombre, apellidos, email, telefono) {
     connection.query(query, function (err, rows, fields) {
       if (err) {
         return reject(err);
-    }
-    resolve(rows);
+      }
+      resolve(rows);
 
+    })
   })
-})
 }
 
 //----------Login------------
 function login(usuario, clave) {
 
-  return new Promise(function(resolve, reject) {
+  return new Promise(function (resolve, reject) {
     clave = md5(clave);
 
     let query = "SELECT * FROM usuarios where usuario='" + usuario + "' and clave = '" + clave + "'"
     console.log(query);
-  
+
     connection.query(query, function (err, rows, fields) {
       if (err) {
         return reject(err);
-    }
-    let today = new Date();
-    setSessionValue("usuario",usuario);
-    setSessionValue("clave",clave);
-    setSessionValue("tiempo",today.getHours());
-    resolve(rows);
-  
+      }
+      let today = new Date();
+      setSessionValue("usuario", usuario);
+      setSessionValue("clave", clave);
+      setSessionValue("tiempo", today.getHours());
+      try {
+        setSessionValue("tipo", rows[0]['tipo']);
+      } catch (error) {
+        console.log("------------error login----------------");
+      }
+      
+
+      resolve(rows);
+
     })
   })
 }
 
+//UPDATE user
+function updateUser(query, usuario, clave) {
+  return new Promise(function (resolve, reject) {
+    console.log(query);
 
+    connection.query(query, function (err, rows, fields) {
+      if (err) {
+        return reject(err);
+      }
+      let today = new Date();
+      setSessionValue("usuario", usuario);
+      setSessionValue("clave", clave);
+      setSessionValue("tiempo", today.getHours());
+      resolve(rows);
+
+    })
+  })
+}
+
+//DELETE user
+function deleteAccount(usuario){
+  return new Promise(function (resolve, reject) {
+    let query="DELETE from usuarios where usuario='"+usuario+"'";
+    console.log(query);
+
+    connection.query(query, function (err, rows, fields) {
+      if (err) {
+        return reject(err);
+      }
+      setSessionValue("usuario", "undefined");
+      setSessionValue("clave", "undefined");
+      setSessionValue("tiempo", "undefined");
+      resolve(rows);
+
+    })
+  })
+}
 
 
 

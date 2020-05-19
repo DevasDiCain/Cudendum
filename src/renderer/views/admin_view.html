@@ -6,13 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="../../css/normal_view.css" />
-    <title>Cudendum</title>
+    <link rel="stylesheet" href="../../css/admin_view.css" />
+    <title>Cudendum-Administración</title>
 </head>
 
 <body>
     <div id="header"><img id="logo" src="../../assets/graphics/iconos/cudendum.ico">
-        <h1 id="title">Cudendum</h1>
+        <h1 id="title">Cudendum-Administración</h1>
     </div>
     <div id="contenido">
         <div class="content">
@@ -30,28 +30,12 @@
                 <div class="jquery-accordion-menu-header" id="escondido"><a id="cerrarSesion">Cerrar
                         Sesión</a>&nbsp;&nbsp;&nbsp;&nbsp;<a id="goToProfile">Ir a mi Perfil</a></div>
                 <ul>
-                    <li class="active"><a href="#">Inicio </a></li>
-                    <li><a href="#">Noticias </a></li>
-                    <li><a href="#">Partners </a><span
-                            class="jquery-accordion-menu-label">3! </span></li>
-                    <li><a href="#">Servicios </a>
-                        <ul class="submenu">
-                            <li><a href="#">
-                                    Diseño Web </a></li>
-                            <li><a href="#">SEO/Marketing </a></li>
-                        </ul>
+                    <li class="active"><a href="#"><i class="fa fa-home"></i>Administrar Usuarios </a></li>
+                    <li><a href="#"><i class="fa fa-glass"></i>Administrar Noticias </a></li>
+                    <li><a href="#"><i class="fa fa-file-image-o"></i>Administrar Partners </a>
+                    <li><a href="#"><i class="fa fa-cog"></i>Administrar Servicios </a>
                     </li>
-                    <li><a href="#">Novedades </a></li>
-                    <li><a href="#">Asociados </a>
-                        <ul class="submenu">
-                            <li><a href="#">Wäalivara Lawyers </a></li>
-                            <li><a href="#">Trámitas </a><span class="jquery-accordion-menu-label">10 </span></li>
-                        </ul>
-                    </li>
-                    <li><a href="#">Sobre nosotros </a></li>
-                    <li><a href="#">Contacto </a></li>
-                </ul>
-                <div class="jquery-accordion-menu-footer" id="hoy"></div>
+                <div class="jquery-accordion-menu-footer">Administración</div>
             </div>
         </div>
         <div id="cuerpo">
@@ -82,13 +66,7 @@
 
         $(document).ready(function () {
             document.getElementById("mostrarUsuario").innerHTML = localStorage.getItem("usuario");
-            var today = new Date();
 
-            var m = today.getMonth() + 1;
-
-            var mes = (m < 10) ? '0' + m : m;
-
-            document.getElementById("hoy").innerHTML = today.getDate()+ ' / ' + mes+' / ' + today.getFullYear()+'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+today.getHours()+':'+today.getMinutes()+':'+today.getSeconds();
             //EFECTOS VISUALES JQUERY
             $("#menTitl").hover(function () {
                 $("#escondido").toggle();
@@ -140,7 +118,7 @@
             ipcRenderer.on("showEditProfile", function (fallo, rows) {
                 $("#cuerpo").empty();
                 $("#cuerpo").append('<div id="card"> <div id="cardEditTitle">Editar perfil</div><div id="editProfile"><div class="usuario"><label>Nombre de usuario: </label><input type="text" id="userEdit" value="' + rows["usuario"] + '"/></div>' +
-                    '<div class="clave"><label>Contraseña: </label><input type="password" id="passEdit"/></div>' +
+                    '<div class="clave"><label>Contraseña: </label><input type="password" id="passEdit"/></div>'+
                     '<div class="nombre"><label>Nombre:  </label><input type="text" id="nameEdit" value="' + rows["nombre"] + '"/></div><div class="apellido"><label>Apellidos</label><input type="text" value="' + rows["apellidos"] + '" id="secondNameEdit"/></div>' +
                     '<div class="email"><label>Email: </label><input type="text" value="' + rows["email"] + '" id="emailEdit"/></div>' +
                     '<div class="tlf"><label>Teléfono: </label><input type="text" value="' + rows["telefono"] + '" id="tlfEdit" /></div></div><div id="btnControlEdit"><button id="btn_edit_profile">Editar</button><button id="btn_cancelar">Cancelar</button></div></div>');
@@ -163,7 +141,7 @@
                     const apellidos = document.querySelector('#secondNameEdit').value;
                     const email = document.querySelector('#emailEdit').value;
                     const telefono = document.querySelector('#tlfEdit').value;
-
+                    
                     if (usuario == "" || nombre == "" || apellidos == "" || email == "" || telefono == "")
                         ipcRenderer.send('empty-field-edit');
                     else
@@ -177,10 +155,8 @@
                         $("#cuerpo").empty();
                         $("#cuerpo").append('<img src="../../assets/graphics/iconos/cudendumSVG.svg" id="logoCuerpo"></svg>');
                         profileShowed = false;
-                    });
+                });
                 })
-
-                
             })
 
         });
