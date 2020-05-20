@@ -127,6 +127,7 @@
             });
             //COMUNICACIÓN ENTRE PROCESOS
             $("#goToProfile").click(function () {
+                console.log(profileShowed);
                 if (!profileShowed) {
                     profileShowed = true;
                     let user = document.getElementById("mostrarUsuario").innerHTML;
@@ -176,7 +177,7 @@
                 $("#cuerpo").append('<div id="card"> <div id="cardTitle">Perfil</div><div class="dropdown">' +
                     '<button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
                     'Opciones</button><div class="dropdown-menu" id="dropdownMenu" aria-labelledby="dropdownMenuButton">' +
-                    '<a class="dropdown-item" href="#" id="editarPerfil">Editar</a><a class="dropdown-item" href="#" id="eliminarCuenta">Eliminar Cuenta</a><a class="dropdown-item" href="#" id="solicitarAyuda">' +
+                    '<a class="dropdown-item" href="#" id="editarPerfil">Editar</a><a class="dropdown-item" href="#" id="eliminarCuenta" value="'+rows["id_usuario"]+'">Eliminar Cuenta</a><a class="dropdown-item" href="#" id="solicitarAyuda">' +
                     'Solicitar ayuda</a></div></div><div id="profile"><div class="usuario"><label>Nombre de usuario: </label><span>' + rows["usuario"] + '</span></div>' +
                     '<div class="nombre"><label>Nombre:  </label><span>' + rows["nombre"] + " " + rows["apellidos"] + '</span></div>' +
                     '<div class="email"><label>Email: </label><span>' + rows["email"] + '</span></div><div class="tipo"><label>Tipo: </label><span>' + rows["tipo"] + '</span></div>' +
@@ -186,8 +187,8 @@
                     ipcRenderer.send("showEditProfile", user);
                 });
                 $("#eliminarCuenta").click(function () {
-                    let user = document.getElementById("mostrarUsuario").innerHTML;
-                    ipcRenderer.send("deleteAccount", user);
+                    let id_user = document.getElementById("eliminarCuenta").value;
+                    ipcRenderer.send("deleteAccount", id_user);
                 });
                 $("#solicitarAyuda").click(function () {
                     ipcRenderer.send("needHelp");//Esta función no está implementada
@@ -199,7 +200,7 @@
                     '<div class="clave"><label>Contraseña: </label><input type="password" id="passEdit"/></div>' +
                     '<div class="nombre"><label>Nombre:  </label><input type="text" id="nameEdit" value="' + rows["nombre"] + '"/></div><div class="apellido"><label>Apellidos</label><input type="text" value="' + rows["apellidos"] + '" id="secondNameEdit"/></div>' +
                     '<div class="email"><label>Email: </label><input type="text" value="' + rows["email"] + '" id="emailEdit"/></div>' +
-                    '<div class="tlf"><label>Teléfono: </label><input type="text" value="' + rows["telefono"] + '" id="tlfEdit" /></div></div><div id="btnControlEdit"><button id="btn_edit_profile">Editar</button><button id="btn_cancelar">Cancelar</button></div></div>');
+                    '<div class="tlf"><label>Teléfono: </label><input type="text" value="' + rows["telefono"] + '" id="tlfEdit" /></div></div><div id="btnControlEdit"><button id="btn_edit_profile" value="'+rows["id_usuario"]+'">Editar</button><button id="btn_cancelar">Cancelar</button></div></div>');
                 $("#btn_cancelar").click(function () {
                     if (!profileShowed) {
                         profileShowed = true;
@@ -219,14 +220,15 @@
                     const apellidos = document.querySelector('#secondNameEdit').value;
                     const email = document.querySelector('#emailEdit').value;
                     const telefono = document.querySelector('#tlfEdit').value;
+                    const id_usuario = document.querySelector('#btn_edit_profile').value;
 
                     if (usuario == "" || nombre == "" || apellidos == "" || email == "" || telefono == "")
                         ipcRenderer.send('empty-field-edit');
                     else
-                        ipcRenderer.send('editProfile', usuario, clave, nombre, apellidos, email, telefono);
+                        ipcRenderer.send('editProfile', usuario, clave, nombre, apellidos, email, telefono,id_usuario);
                 })
-                ipcRenderer.on("editCorrect", function (fallo, rows) {
-                    console.log("bien");
+                ipcRenderer.on("editCorrect", function (fallo, usuario) {
+                    document.getElementById("mostrarUsuario").innerText=usuario;
                     $("#cuerpo").empty();
                     $("#cuerpo").append('<div id="card"><div id="cardEditTitle">Guardado</div><div id="successEdit">PERFIL EDITADO CON ÉXITO</div><div id="btnControlVolver"><button id="btn_volver">volver</button></div></div>');
                     $("#btn_volver").click(function () {

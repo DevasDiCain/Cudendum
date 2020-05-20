@@ -296,16 +296,16 @@ ipcMain.on("showEditProfile", function (event, user) {
     event.reply('showEditProfile', rows)//Los mando al renderer
   }).catch((err) => setImmediate(() => { console.log(err) }))
 })
+
 //MODIFICAR EL PERFIL
-ipcMain.on("editProfile", function (event, usuario, clave, nombre, apellido, email, telefono) {
-  get("usuarios", "usuario", usuario).then(function (rows) {//Obtengo los datos 
+ipcMain.on("editProfile", function (event, usuario, clave, nombre, apellido, email, telefono,id_usuario) {
+  get("usuarios", "id_usuario", id_usuario).then(function (rows) {//Obtengo los datos 
     let query = "";
     if (clave == "") {
       let oldPassword = rows["clave"];
       query = "UPDATE usuarios SET usuario='" + usuario + "',clave='" + oldPassword + "',nombre='" + nombre + "',apellidos='" + apellido + "',email='" + email + "',telefono='" + telefono + "' WHERE usuario = '" + rows["usuario"] + "' and clave = '" + rows["clave"] + "'";
       updateUser(query, usuario, oldPassword).then(function (rows) {
-        console.log("pasa");
-        event.reply("editCorrect");
+        event.reply("editCorrect",usuario);
       }).catch((err) => setImmediate(() => { console.log(err) }))
     }
     else {
@@ -323,11 +323,11 @@ ipcMain.on("editProfile", function (event, usuario, clave, nombre, apellido, ema
   }).catch((err) => setImmediate(() => { console.log(err) }))
 })
 //Elimitar cuenta
-ipcMain.on("deleteAccount", function (event,user) { 
+ipcMain.on("deleteAccount", function (event,id_user) { 
   mainWindow.webContents.executeJavaScript('confirm("¿Estás seguro que desea eliminar su cuenta?");').then((result) => {
       if(result)
       {
-        deleteAccount(user).then(function () {
+        deleteAccount(id_user).then(function () {
           mainWindow.loadURL(url.format({
             pathname: path.join(__dirname, 'src/renderer/loginWindow.html'),
             protocol: 'file:',
@@ -356,12 +356,45 @@ ipcMain.on("needHelp", function (event) { //ESTA FUNCION  NO ESTÁ IMPLEMENTADA
 })
 
 ipcMain.on("goToNews", function (event) { 
-    let news = getAll("noticias").then((result)=>{
+      getAll("noticias").then((result)=>{
        event.reply("showNews",result)
     }).catch((err) => setImmediate(() => { console.log(err) }))
 })
+//------Administración--------
+ipcMain.on("goToAdministrateUsers",function(event){
+     getAll("usuarios").then((result)=>{
+      event.reply("showUsers",result)
+  }).catch((err) => setImmediate(() => { console.log(err) }))
+})
 
+ipcMain.on("showEditProfileAdmin",function(event,id_user){
+  get("usuarios", "id_usuario", id_user).then(function (rows) {//Obtengo los datos 
+    event.reply('showEditProfile', rows)//Los mando al renderer
+  }).catch((err) => setImmediate(() => { console.log(err) }))
+})
+ipcMain.on("deleteAccountAdm", function (event,id_user) { 
+  mainWindow.webContents.executeJavaScript('confirm("¿Estás seguro que desea eliminar su cuenta?");').then((result) => {
+      if(result)
+      {
+        deleteAccount(id_user).then(function () {
+          mainWindow.loadURL(url.format({
+            pathname: path.join(__dirname, 'src/renderer/views/admin_view.html'),
+            protocol: 'file:',
+            slashes: true
+          }));
+        }).catch((err) => setImmediate(() => { console.log(err) }))
+      }
+      else
+      {
+        console.log("no eliminar");
+      }
+  }).catch((err) => setImmediate(() => { console.log(err) }))
+})
 
+ipcMain.on('addNewUser', function () {
+  createRegisterWindow();
+  Menu.setApplicationMenu(registerMenu);
+})
 //************************************************************************** */
 //--------------------------PLANTILLAS-MENUS----------------------------------
 //*************************************************************************** */
@@ -576,9 +609,9 @@ function updateUser(query, usuario, clave) {
 }
 
 //DELETE user
-function deleteAccount(usuario){
+function deleteAccount(id_usuario){
   return new Promise(function (resolve, reject) {
-    let query="DELETE from usuarios where usuario='"+usuario+"'";
+    let query="DELETE from usuarios where id_usuario='"+id_usuario+"'";
     console.log(query);
 
     connection.query(query, function (err, rows, fields) {

@@ -44,3 +44,13 @@
 
 #cuerpo{display:flex;justify-content: space-around;}
 #logoCuerpo{width:400px;height:400px;margin:auto;}
+
+table button{color:black;}
+
+#cardUsers{width:90%;height:476px;margin:auto;background-color:#414956;margin-top:7.5%;color:white;}
+#addNewUser{color:black;}
+
+.row{height: 466px!important;margin-top:5em;width:700px;}
+#registerWindowExit{background-color:red;width:4%;text-align: center;margin-top:2%;}
+#registerWindowExit:hover{cursor: pointer;}
+#registerWindowExit:active{font-size:0.5em;}
