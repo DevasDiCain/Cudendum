@@ -341,7 +341,26 @@ ipcMain.on("deleteAccount", function (event,user) {
       }
   }).catch((err) => setImmediate(() => { console.log(err) }))
 })
-ipcMain.on("needHelp", function (user) { })
+ipcMain.on("needHelp", function (event) { //ESTA FUNCION  NO ESTÁ IMPLEMENTADA
+  console.log("hola");
+  mainWindow.webContents.executeJavaScript('confirm("¿Desea solicitar ayuda?");').then((result) => {
+    if(result)
+    {
+      console.log("Ayuda activada");
+    }
+    else
+    {
+      console.log("Ayuda desactividada");
+    }
+}).catch((err) => setImmediate(() => { console.log(err) }))
+})
+
+ipcMain.on("goToNews", function (event) { 
+    let news = getAll("noticias").then((result)=>{
+       event.reply("showNews",result)
+    }).catch((err) => setImmediate(() => { console.log(err) }))
+})
+
 
 //************************************************************************** */
 //--------------------------PLANTILLAS-MENUS----------------------------------
@@ -473,7 +492,22 @@ function get(table, element, value) {
     })
   })
 }
+//----------GET * -------------------
 
+function getAll(table) {
+  return new Promise(function (resolve, reject) {
+    let query = "SELECT * FROM " + table;
+    console.log(query);
+
+    connection.query(query, function (err, rows, fields) {
+      if (err) {
+        return reject(err);
+      }
+      resolve(rows);
+
+    })
+  })
+}
 
 //--------------REGISTRO--------
 function register(usuario, clave, nombre, apellidos, email, telefono) {

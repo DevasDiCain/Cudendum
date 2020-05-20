@@ -30,9 +30,9 @@
                 <div class="jquery-accordion-menu-header" id="escondido"><a id="cerrarSesion">Cerrar
                         Sesión</a>&nbsp;&nbsp;&nbsp;&nbsp;<a id="goToProfile">Ir a mi Perfil</a></div>
                 <ul>
-                    <li class="active"><a href="#">Inicio </a></li>
-                    <li><a href="#">Noticias </a></li>
-                    <li><a href="#">Partners </a><span
+                    <li class="active"><a href="#" id="goHome">Inicio </a></li>
+                    <li><a href="#" id="goToNews">Noticias </a></li>
+                    <li><a href="#" id="goPartners">Partners </a><span
                             class="jquery-accordion-menu-label">3! </span></li>
                     <li><a href="#">Servicios </a>
                         <ul class="submenu">
@@ -41,7 +41,7 @@
                             <li><a href="#">SEO/Marketing </a></li>
                         </ul>
                     </li>
-                    <li><a href="#">Novedades </a></li>
+                    <li><a href="#" id="goNovedades">Novedades </a></li>
                     <li><a href="#">Asociados </a>
                         <ul class="submenu">
                             <li><a href="#">Wäalivara Lawyers </a></li>
@@ -89,6 +89,7 @@
             var mes = (m < 10) ? '0' + m : m;
 
             document.getElementById("hoy").innerHTML = today.getDate()+ ' / ' + mes+' / ' + today.getFullYear()+'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+today.getHours()+':'+today.getMinutes()+':'+today.getSeconds();
+            
             //EFECTOS VISUALES JQUERY
             $("#menTitl").hover(function () {
                 $("#escondido").toggle();
@@ -97,9 +98,33 @@
                 $("#escondido").toggle();
             })
             $("#cerrarSesion").click(function () {
-                ipcRenderer.send("sesion-off");
+                    ipcRenderer.send("sesion-off");
             });
-
+            $("#goToNews").click(function () {
+                    ipcRenderer.send("goToNews");
+            });
+            $("#goHome").click(function () {
+                $("#cuerpo").empty();
+                    $("#cuerpo").append('<img src="../../assets/graphics/iconos/cudendumSVG.svg" id="logoCuerpo"></svg>');
+            });
+            $("#goPartners").click(function () {
+                $("#cuerpo").empty();
+                $("#cuerpo").append('<div id="card"><div id="cardServiceOff">¡Estámos Trabajando a Destajo!</div><div id="cardServiceOffBody">La sección Partners aún no está disponible</div><div id="btnControlVolverServiceOff"><button id="btn_volver">volver</button></div></div>');
+                $("#btn_volver").click(function () {
+                        $("#cuerpo").empty();
+                        $("#cuerpo").append('<img src="../../assets/graphics/iconos/cudendumSVG.svg" id="logoCuerpo"></svg>');
+                        profileShowed = false;
+                    });
+            });
+            $("#goNovedades").click(function () {
+                $("#cuerpo").empty();
+                $("#cuerpo").append('<div id="card"><div id="cardServiceOff">¡Estámos Trabajando a Destajo!</div><div id="cardServiceOffBody">La sección Novedades aún no está disponible</div><div id="btnControlVolverServiceOff"><button id="btn_volver">volver</button></div></div>');
+                $("#btn_volver").click(function () {
+                        $("#cuerpo").empty();
+                        $("#cuerpo").append('<img src="../../assets/graphics/iconos/cudendumSVG.svg" id="logoCuerpo"></svg>');
+                        profileShowed = false;
+                    });
+            });
             //COMUNICACIÓN ENTRE PROCESOS
             $("#goToProfile").click(function () {
                 if (!profileShowed) {
@@ -114,6 +139,38 @@
                 }
 
             });
+            ipcRenderer.on("showNews",function(fallo,rows){
+                    let newsTable ="";
+                    $("#cuerpo").empty();
+                    newsTable='<div id="card"><div id="cardNews">Noticias</div><div id="noticias">';
+                    let i = 0;
+                        rows.forEach(element => {
+                            newsTable+='<div class="new"><div id="newsTitle'+i+'">'+element['titulo']+'</div></div>';
+                            newsTable+='<div class="infoNews" id="infoNews'+i+'" style="display:none"><div class="newsCopete">'+element['copete']+'</div><div class="newsBody">'+element['cuerpo']+'</div></div>'
+                            i++;
+                           /* $('.newsTitle').click(function(){
+                                $('.newsTitle').toggle("slow",function(){
+                                    $('.newsTitle').append('<div class="newsCopete">'+element['copete']+'</div><div class="newsBody">'+element['cuerpo']+'</div>');
+                                })
+                            })*/
+                               
+                        })
+                            
+                        newsTable+='</div><div id="btnControlVolver_news"><button id="btn_volver">volver</button></div></div>';
+                    $("#cuerpo").append(newsTable);
+                    for(let x = 0; x < i ; x++)
+                    {
+                        $('#newsTitle'+x).click(function(){
+                                $('#infoNews'+x).toggle("slow")
+                            })
+                    }
+                   
+                    $("#btn_volver").click(function () {
+                        $("#cuerpo").empty();
+                        $("#cuerpo").append('<img src="../../assets/graphics/iconos/cudendumSVG.svg" id="logoCuerpo"></svg>');
+                        profileShowed = false;
+                    });
+            })
             ipcRenderer.on("showProfile", function (fallo, rows) {
                 $("#cuerpo").empty();
                 $("#cuerpo").append('<div id="card"> <div id="cardTitle">Perfil</div><div class="dropdown">' +
@@ -126,7 +183,6 @@
                     '<div class="tlf"><label>Teléfono: </label><span>' + rows["telefono"] + '</span></div></div></div>');
                 $("#editarPerfil").click(function () {
                     let user = document.getElementById("mostrarUsuario").innerHTML;
-                    console.log("holita");
                     ipcRenderer.send("showEditProfile", user);
                 });
                 $("#eliminarCuenta").click(function () {
@@ -134,7 +190,7 @@
                     ipcRenderer.send("deleteAccount", user);
                 });
                 $("#solicitarAyuda").click(function () {
-                    ipcRenderer.send("needHelp", user);
+                    ipcRenderer.send("needHelp");//Esta función no está implementada
                 });
             });
             ipcRenderer.on("showEditProfile", function (fallo, rows) {

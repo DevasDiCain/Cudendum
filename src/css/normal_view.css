@@ -44,3 +44,15 @@
 
 #cuerpo{display:flex;justify-content: space-around;}
 #logoCuerpo{width:400px;height:400px;margin:auto;}
+
+#cardNews{font-size:4em;width:30%;margin:auto;}
+#btnControlVolver_news{display:flex;justify-content: space-between;position:absolute;bottom:10em;right:30em;}
+#btnControlVolver_news button{margin:auto;font-size:1.5em;background-color:#3b424d}
+.new{font-size:2em;margin:1em;color:black;text-decoration:underline;cursor: pointer;}
+.infoNews{margin:2em;}
+.newsCopete{color:gold;margin-bottom:1em;}
+
+#cardServiceOff{font-size:3em;margin:auto;width:82%;margin-top:2em;}
+#cardServiceOffBody{margin:7em;font-size:1.5em;}
+#btnControlVolverServiceOff{display:flex;justify-content: space-between;position:absolute;bottom:11em;right:30em;   }
+#btnControlVolverServiceOff button{margin:auto;font-size:1.5em;background-color:#3b424d}
