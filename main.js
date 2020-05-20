@@ -376,6 +376,7 @@ ipcMain.on("deleteAccountAdm", function (event,id_user) {
   mainWindow.webContents.executeJavaScript('confirm("¿Estás seguro que desea eliminar su cuenta?");').then((result) => {
       if(result)
       {
+        console.log("id_user->"+id_user);
         deleteAccount(id_user).then(function () {
           mainWindow.loadURL(url.format({
             pathname: path.join(__dirname, 'src/renderer/views/admin_view.html'),
