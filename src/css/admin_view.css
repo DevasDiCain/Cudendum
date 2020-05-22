@@ -54,3 +54,12 @@ table button{color:black;}
 #registerWindowExit{background-color:red;width:4%;text-align: center;margin-top:2%;}
 #registerWindowExit:hover{cursor: pointer;}
 #registerWindowExit:active{font-size:0.5em;}
+
+#cardNews{width:90%;height:476px;margin:auto;background-color:#414956;margin-top:7.5%;color:white;}
+#addNewNews{color:black;}
+
+#newTitle{font-size:3em;width:40%;margin:auto;}
+#editNew{display:flex;flex-direction: column;}
+#editNew div{width:100%;font-size: 1.5em;margin:auto;margin-top:1em;display: flex;justify-content: space-between;background-color: #3b424d;}
+#editNew label{margin-left:2.5em;}
+#editNew input,textarea{margin-right:3.5em;width:50%;color:black;}

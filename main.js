@@ -366,14 +366,23 @@ ipcMain.on("goToAdministrateUsers",function(event){
       event.reply("showUsers",result)
   }).catch((err) => setImmediate(() => { console.log(err) }))
 })
-
+ipcMain.on("goToAdministrateNews",function(event){
+  getAll("noticias").then((result)=>{
+   event.reply("showNews",result)
+}).catch((err) => setImmediate(() => { console.log(err) }))
+})
+ipcMain.on("addNew",function(event,titulo,copete,cuerpo){
+  addNew(titulo,copete,cuerpo).then((result)=>{
+    event.reply("newAdded");
+  }).catch((err) => setImmediate(() => { console.log(err) }))
+})
 ipcMain.on("showEditProfileAdmin",function(event,id_user){
   get("usuarios", "id_usuario", id_user).then(function (rows) {//Obtengo los datos 
     event.reply('showEditProfile', rows)//Los mando al renderer
   }).catch((err) => setImmediate(() => { console.log(err) }))
 })
 ipcMain.on("deleteAccountAdm", function (event,id_user) { 
-  mainWindow.webContents.executeJavaScript('confirm("¿Estás seguro que desea eliminar su cuenta?");').then((result) => {
+  mainWindow.webContents.executeJavaScript('confirm("¿Estás seguro que desea eliminar esta cuenta?");').then((result) => {
       if(result)
       {
         console.log("id_user->"+id_user);
@@ -391,10 +400,37 @@ ipcMain.on("deleteAccountAdm", function (event,id_user) {
       }
   }).catch((err) => setImmediate(() => { console.log(err) }))
 })
-
+ipcMain.on("deleteNew", function (event,id_new) { 
+  mainWindow.webContents.executeJavaScript('confirm("¿Estás seguro que desea eliminar esta noticia?");').then((result) => {
+      if(result)
+      {
+        deleteNew(id_new).then(function () {
+          mainWindow.loadURL(url.format({
+            pathname: path.join(__dirname, 'src/renderer/views/admin_view.html'),
+            protocol: 'file:',
+            slashes: true
+          }));
+        }).catch((err) => setImmediate(() => { console.log(err) }))
+      }
+      else
+      {
+        console.log("no eliminar");
+      }
+  }).catch((err) => setImmediate(() => { console.log(err) }))
+})
 ipcMain.on('addNewUser', function () {
   createRegisterWindow();
   Menu.setApplicationMenu(registerMenu);
+})
+ipcMain.on("showEditNews",function(event,id_new){
+  get("noticias", "idNoticia", id_new).then(function (rows) {//Obtengo los datos 
+    event.reply('showEditNew', rows)//Los mando al renderer
+  }).catch((err) => setImmediate(() => { console.log(err) }))
+})
+ipcMain.on("editNew",function(event,titulo,copete,cuerpo,idNoticia){
+  updateNews(titulo,copete,cuerpo,idNoticia).then(function (rows) {//Obtengo los datos 
+    event.reply('newEdited', rows)//Los mando al renderer
+  }).catch((err) => setImmediate(() => { console.log(err) }))
 })
 //************************************************************************** */
 //--------------------------PLANTILLAS-MENUS----------------------------------
@@ -628,7 +664,53 @@ function deleteAccount(id_usuario){
   })
 }
 
+//Insert new
 
+function addNew(titulo,copete,cuerpo){
+  return new Promise(function (resolve, reject) {
+    let query='INSERT into noticias (titulo,copete,cuerpo) values ("'+titulo+'","'+copete+'","'+cuerpo+'")';
+    console.log(query);
+
+    connection.query(query, function (err, rows, fields) {
+      if (err) {
+        return reject(err);
+      }
+      resolve(rows);
+
+    })
+  })
+}
+
+//UPDATE news
+function updateNews( titulo, copete,cuerpo,idNoticia) {
+  return new Promise(function (resolve, reject) {
+    let query='UPDATE  noticias set titulo="'+titulo+'", copete="'+copete+'",cuerpo="'+cuerpo+'" where idNoticia= "'+idNoticia+'"';
+    console.log(query);
+
+    connection.query(query, function (err, rows, fields) {
+      if (err) {
+        return reject(err);
+      }
+      resolve(rows);
+
+    })
+  })
+}
+//DELETE new
+function deleteNew(id_new){
+  return new Promise(function (resolve, reject) {
+    let query="DELETE from noticias where idNoticia='"+id_new+"'";
+    console.log(query);
+
+    connection.query(query, function (err, rows, fields) {
+      if (err) {
+        return reject(err);
+      }
+      resolve(rows);
+
+    })
+  })
+}
 
 
 

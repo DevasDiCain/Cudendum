@@ -86,6 +86,9 @@
             $("#goToAdministrateUsers").click(function () {
                 ipcRenderer.send("goToAdministrateUsers");
             });
+            $("#goToAdministrateNews").click(function(){
+                ipcRenderer.send("goToAdministrateNews");
+            })
 
 
             //COMUNICACIÓN ENTRE PROCESOS
@@ -278,6 +281,136 @@
                     });
                 })
             })
+            ipcRenderer.on("showNews", function (fallo, rows) {
+                $("#cuerpo").empty();
+                let i = 0;
+                let newsList = '<div id="cardNews"><button id="addNewNews" class="btn btn-dark">Nueva Noticia</button><table class="table table-dark"><thead><tr><th scope="col">#</th><th scope="col">Titulo</th><th scope="col">Copete</th><th scope="col">Cuerpo</th><th scope="col">Fecha Creación</th><th scope="col">Acción</th></tr></thead><tbody>';
+                rows.forEach(element => {
+                    newsList += '<tr><th scope="row">' + element['idNoticia'] + '</th><td>' + element['titulo'] + '</td><td>' + element['copete'] + '</td><td>' + element['cuerpo'] + '</td><td>' + element['fCreacion'] + '</td><td><button id="editar' + i + '" value="' + element['idNoticia'] + '">Editar</button><button id="borrar' + i + '" value="' + element['idNoticia'] + '">Borrar</button></td></tr>'
+                    i++;
+                });
+                newsList += '</tbody></table><div id="btnControlEdit"><button id="btn_cancelar">Volver</button></div></div>';
+                $("#cuerpo").append(newsList);
+                $("#btn_cancelar").click(function () {
+                    $("#cuerpo").empty();
+                    $("#cuerpo").append('<img src="../../assets/graphics/iconos/cudendumSVG.svg" id="logoCuerpo"></svg>');
+                    profileShowed = false;
+                });
+                for (let x = 0; x < i; x++) {
+                    $("#editar" + x).click(function () {
+                        let news= document.getElementById("editar" + x).value;
+                        ipcRenderer.send("showEditNews", news);
+                    });
+                    $("#borrar" + x).click(function () {
+                        let id_news = document.getElementById("borrar" + x).value;
+                        ipcRenderer.send("deleteNew", id_news);
+                    });
+                }
+                $("#addNewNews").click(function () {
+                   
+                    let registro = ' <div class="row">' +
+                        '<div class="col-md-12">' +
+                        '<div class="well well-sm">' +
+                        ' <form class="form-horizontal" method="post" id="registerForm"}>' +
+                        '<fieldset>' +
+                        '<legend class="text-center header">Nueva noticia</legend>' +
+
+                        '<div class="form-group">' +
+                        '<span class="col-md-1 col-md-offset-2 text-center"><i class="fa fa-user bigicon"></i></span>' +
+                        '<div class="col-md-8">' +
+                        '<input id="newTitles" name="user" type="text" placeholder="Titulo" class="form-control" required/>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                        '<span class="col-md-1 col-md-offset-2 text-center"><i class="fa fa-address-card"></i></span>' +
+                        '<div class="col-md-8">' +
+                        '<input id="newCopete" name="newCopete" type="text" placeholder="Copete" class="form-control" required/>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                        '<span class="col-md-1 col-md-offset-2 text-center"><i class="fa fa-address-book"></i></span>' +
+                        '<div class="col-md-8">' +
+                        '<textarea id="newCuerpo" name="newCuerpo" type="text" placeholder="Cuerpo" class="form-control" required></textarea>' +
+                        '</div>' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                        '<div class="col-md-12 text-center">' +
+                        '<button type="submit" class="btn btn-primary btn-lg" id="btn_submit">Submit</button>' +
+                        '<button  type="button" class="btn btn-primary btn-lg" style="margin-left:1em;" id="btn_cancelar">Cancelar</button>' +
+                        '</div>' +
+
+                        '</div>' +
+                        '</fieldset>' +
+                        '</form>' +
+                        '</div>' +
+                        '</div>';
+                    $("#cuerpo").empty();
+                    $("#cuerpo").append(registro);
+                    $("#btn_submit").click(function(){
+                        const titulo = document.querySelector('#newTitles').value;
+                        const copete = document.querySelector('#newCopete').value;
+                        const cuerpo = document.querySelector('#newCuerpo').value;
+
+
+                        if (titulo == "" || copete == "" || cuerpo == "")
+                            ipcRenderer.send('empty-field');
+                        else
+                            ipcRenderer.send('addNew', titulo, copete, cuerpo);
+
+
+                    })
+                    $("#btn_cancelar").click(function () {
+                        $("#cuerpo").empty();
+                        $("#cuerpo").append('<img src="../../assets/graphics/iconos/cudendumSVG.svg" id="logoCuerpo"></svg>');
+                        profileShowed = false;
+                    });
+                })
+
+                ipcRenderer.on("showEditNew", function (fallo, rows) {
+                $("#cuerpo").empty();
+                $("#cuerpo").append('<div id="card"> <div id="newTitle">Editar noticia</div><div id="editNew"><div class="usuario"><label>Titulo: </label><input type="text" id="titleEdit" value="' + rows["titulo"] + '"/></div>' +
+                    '<div class="nombre"><label>Copete:  </label><input type="text" id="copeteEdit" value="' + rows["copete"] + '"/></div'+
+                    '<div class="email"></div><div class="cuerpo"><label>Cuerpo: </label><textarea id="cuerpoEdit"> ' + rows["cuerpo"] + '</textarea></div>' +
+                    '</div><div id="btnControlEdit"><button id="btn_edit_new" value="' + rows["idNoticia"] + '">Editar</button><button id="btn_cancelar">Cancelar</button></div></div>');
+                $("#btn_cancelar").click(function () {
+                    if (!profileShowed) {
+                        profileShowed = true;
+                        $("#cuerpo").empty();
+                    }
+                    else {
+                        $("#cuerpo").empty();
+                        $("#cuerpo").append('<img src="../../assets/graphics/iconos/cudendumSVG.svg" id="logoCuerpo"></svg>');
+                        profileShowed = false;
+                    }
+
+                });
+                $("#btn_edit_new").click(function () {
+                    const titulo = document.querySelector('#titleEdit').value;
+                    const copete = document.querySelector('#copeteEdit').value;
+                    const cuerpo = document.querySelector('#cuerpoEdit').value;
+                    const idNoticia = document.querySelector('#btn_edit_new').value;
+
+                    if (titulo == "" || copete == "" || cuerpo == "")
+                        ipcRenderer.send('empty-field-edit');
+                    else
+                        ipcRenderer.send('editNew', titulo, copete, cuerpo,idNoticia);
+                })
+                ipcRenderer.on("newEdited", function (fallo, rows) {
+                    console.log("bien");
+                    $("#cuerpo").empty();
+                    $("#cuerpo").append('<div id="card"><div id="cardEditTitle">Guardado</div><div id="successEdit">NOTICIA EDITADA CON ÉXITO</div><div id="btnControlVolver"><button id="btn_volver">volver</button></div></div>');
+                    $("#btn_volver").click(function () {
+                        $("#cuerpo").empty();
+                        $("#cuerpo").append('<img src="../../assets/graphics/iconos/cudendumSVG.svg" id="logoCuerpo"></svg>');
+                        profileShowed = false;
+                    });
+                })
+            })
+
+
+            })
+
+
 
         });
 
