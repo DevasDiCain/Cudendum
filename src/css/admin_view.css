@@ -63,3 +63,9 @@ table button{color:black;}
 #editNew div{width:100%;font-size: 1.5em;margin:auto;margin-top:1em;display: flex;justify-content: space-between;background-color: #3b424d;}
 #editNew label{margin-left:2.5em;}
 #editNew input,textarea{margin-right:3.5em;width:50%;color:black;}
+
+
+#cardServiceOff{font-size:3em;margin:auto;width:82%;margin-top:2em;}
+#cardServiceOffBody{margin:7em;font-size:1.5em;}
+#btnControlVolverServiceOff{display:flex;justify-content: space-between;position:absolute;bottom:11em;right:30em;   }
+#btnControlVolverServiceOff button{margin:auto;font-size:1.5em;background-color:#3b424d}

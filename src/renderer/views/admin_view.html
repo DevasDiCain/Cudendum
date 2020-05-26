@@ -32,8 +32,8 @@
                 <ul>
                     <li class="active" id="goToAdministrateUsers"><a href="#">Administrar Usuarios </a></li>
                     <li><a href="#" id="goToAdministrateNews">Administrar Noticias </a></li>
-                    <li><a href="#" id="goToAdministratePartners">Administrar Partners </a>
-                    <li><a href="#" id="goToAdministrateServices">Administrar Servicios </a>
+                    <li><a href="#" id="goPartners">Administrar Partners </a>
+                    <li><a href="#" id="goServices">Administrar Servicios </a>
                     </li>
                     <div class="jquery-accordion-menu-footer" id="hoy">Administración</div>
             </div>
@@ -410,7 +410,24 @@
 
             })
 
-
+            $("#goPartners").click(function () {
+                $("#cuerpo").empty();
+                $("#cuerpo").append('<div id="card"><div id="cardServiceOff">¡Estámos Trabajando a Destajo!</div><div id="cardServiceOffBody">La sección Partners aún no está disponible</div><div id="btnControlVolverServiceOff"><button id="btn_volver">volver</button></div></div>');
+                $("#btn_volver").click(function () {
+                        $("#cuerpo").empty();
+                        $("#cuerpo").append('<img src="../../assets/graphics/iconos/cudendumSVG.svg" id="logoCuerpo"></svg>');
+                        profileShowed = false;
+                    });
+            });
+            $("#goServices").click(function () {
+                $("#cuerpo").empty();
+                $("#cuerpo").append('<div id="card"><div id="cardServiceOff">¡Estámos Trabajando a Destajo!</div><div id="cardServiceOffBody">La sección Servicios aún no está disponible</div><div id="btnControlVolverServiceOff"><button id="btn_volver">volver</button></div></div>');
+                $("#btn_volver").click(function () {
+                        $("#cuerpo").empty();
+                        $("#cuerpo").append('<img src="../../assets/graphics/iconos/cudendumSVG.svg" id="logoCuerpo"></svg>');
+                        profileShowed = false;
+                    });
+            });
 
         });
 
