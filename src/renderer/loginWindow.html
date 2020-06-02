@@ -88,15 +88,34 @@
             }
 
         }
-        $(document).ready(function () {
-            ipcRenderer.on("errorLogin", function () {
-                console.log("bien");
-                $("#error").apend('  <div class="alert alert-success alert-dismissible fade show">' +
-                    '<strong>Success!</strong> Your message has been sent successfully.' +
-                    '<button type="button" class="close" data-dismiss="alert">&times;</button></div>'
-                );
-            });
-        });
+ 
+            ipcRenderer.on("Error_tlf", function (fallo, rows) {
+                ipcRenderer.send("closeRegisterWindow");
+                $("#contenido").append("<div class='fondo_gris'></div><div class='fullScreen'><div class='aDesplegar'><div class='cerrarError'>X</div><h1>ERROR</h1><p class='contenidoError'>Teléfono Incorrecto</p></div></div>");
+                $(".cerrarError").click(function () {
+                    $(".fondo_gris").remove();
+                    $(".fullScreen").remove();
+                    $(".aDesplegar").remove();
+                });
+            })
+            ipcRenderer.on("Error_conec", function (fallo, rows) {
+                $("#contenido").append("<div class='fondo_gris'></div><div class='fullScreen'><div class='aDesplegar'><div class='cerrarError'>X</div><h1>ERROR</h1><p class='contenidoError'>Ha caducado su sesión</p></div></div>");
+                $(".cerrarError").click(function () {
+                    $(".fondo_gris").remove();
+                    $(".fullScreen").remove();
+                    $(".aDesplegar").remove();
+                });
+            })
+            ipcRenderer.on("Error_login", function (fallo, rows) {
+                alert("lkasjdfk");
+                $("#contenido").append("<div class='fondo_gris'></div><div class='fullScreen'><div class='aDesplegar'><div class='cerrarError'>X</div><h1>ERROR</h1><p class='contenidoError'>Error en el login</p></div></div>");
+                $(".cerrarError").click(function () {
+                    $(".fondo_gris").remove();
+                    $(".fullScreen").remove();
+                    $(".aDesplegar").remove();
+                });
+            })
+ 
 
 
     </script>

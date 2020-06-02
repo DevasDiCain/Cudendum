@@ -105,6 +105,33 @@
                 }
 
             });
+            ipcRenderer.on("Error_tlf", function (fallo, rows) {
+                ipcRenderer.send("closeRegisterWindow");
+                $("#cuerpo").append("<div class='fondo_gris'></div><div class='fullScreen'><div class='aDesplegar'><div class='cerrarError'>X</div><h1>ERROR</h1><p class='contenidoError'>Teléfono Incorrecto</p></div></div>");
+                $(".cerrarError").click(function () {
+                    $(".fondo_gris").remove();
+                    $(".fullScreen").remove();
+                    $(".aDesplegar").remove();
+                });
+            })
+            ipcRenderer.on("Error_conec", function (fallo, rows) {
+                alert("por aqui");
+                $("#cuerpo").append("<div class='fondo_gris'></div><div class='fullScreen'><div class='aDesplegar'><div class='cerrarError'>X</div><h1>ERROR</h1><p class='contenidoError'>Ha caducado su sesión</p></div></div>");
+                $(".cerrarError").click(function () {
+                    $(".fondo_gris").remove();
+                    $(".fullScreen").remove();
+                    $(".aDesplegar").remove();
+                });
+            })
+ 
+            ipcRenderer.on("ERROR-emptyField", function (fallo, rows) {
+                $("#cuerpo").append("<div class='fondo_gris'></div><div class='fullScreen'><div class='aDesplegar'><div class='cerrarError'>X</div><h1>ERROR</h1><p class='contenidoError'>Campos Vacíos</p></div></div>");
+                $(".cerrarError").click(function () {
+                    $(".fondo_gris").remove();
+                    $(".fullScreen").remove();
+                    $(".aDesplegar").remove();
+                });
+            })
             ipcRenderer.on("showProfile", function (fallo, rows) {
                 $("#cuerpo").empty();
                 $("#cuerpo").append('<div id="card"> <div id="cardTitle">Perfil</div><div class="dropdown">' +
@@ -132,8 +159,16 @@
                 $("#cuerpo").empty();
                 let i = 0;
                 let userList = '<div id="cardUsers"><button id="addNewUser" class="btn btn-dark">Nuevo Usuario</button><table class="table table-dark"><thead><tr><th scope="col">#</th><th scope="col">Usuario</th><th scope="col">Nombre</th><th scope="col">Email</th><th scope="col">Tipo</th><th scope="col">Telefono</th><th scope="col">Colaboración</th><th scope="col">Acción</th></tr></thead><tbody>';
-                rows.forEach(element => {
-                    userList += '<tr><th scope="row">' + element['id_usuario'] + '</th><td>' + element['usuario'] + '</td><td>' + element['nombre'] + ' ' + element['apellidos'] + '</td><td>' + element['email'] + '</td><td>' + element['tipo'] + '</td><td>' + element['telefono'] + '</td><td>' + element['cod_acuerdoCol'] + '</td><td><button id="editar' + i + '" value="' + element['id_usuario'] + '">Editar</button><button id="borrar' + i + '" value="' + element['id_usuario'] + '">Borrar</button></td></tr>'
+                let colaborate = "";
+                    rows.forEach(element => {
+                        if(element['cod_acuerdoCol']==null)
+                        {
+                            colaborate="Ninguna";
+                        }
+                        else
+                            colaborate=element["cod_acuerdoCol"];
+
+                    userList += '<tr><th scope="row">' + element['id_usuario'] + '</th><td>' + element['usuario'] + '</td><td>' + element['nombre'] + ' ' + element['apellidos'] + '</td><td>' + element['email'] + '</td><td>' + element['tipo'] + '</td><td>' + element['telefono'] + '</td><td>' + colaborate + '</td><td><button id="editar' + i + '" value="' + element['id_usuario'] + '">Editar</button><button id="borrar' + i + '" value="' + element['id_usuario'] + '">Borrar</button></td></tr>'
                     i++;
                 });
                 userList += '</tbody></table><div id="btnControlEdit"><button id="btn_cancelar">Volver</button></div></div>';

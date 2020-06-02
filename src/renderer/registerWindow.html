@@ -71,6 +71,9 @@
 )
     </div>
     <script>
+        window.jQuery = window.$ = require('jquery');
+    </script>
+    <script>
         const electron = require('electron');
         const {ipcRenderer} = electron;
 
@@ -85,6 +88,7 @@
             const email = document.querySelector('#email').value;
             const telefono = document.querySelector('#telefono').value;
 
+            
             if(usuario == "" ||  clave == "" ||  nombre == "" ||  apellidos == "" ||  email == "" ||  telefono == "")
                 ipcRenderer.send('empty-field');
             else
@@ -92,6 +96,7 @@
 
            
         }
+        
     </script>
 </body>
 </html>

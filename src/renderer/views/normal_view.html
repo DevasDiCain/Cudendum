@@ -126,6 +126,16 @@
                     });
             });
             //COMUNICACIÓN ENTRE PROCESOS
+            ipcRenderer.on("Error_conec", function (fallo, rows) {
+                alert("por aqui");
+                $("#cuerpo").append("<div class='fondo_gris'></div><div class='fullScreen'><div class='aDesplegar'><div class='cerrarError'>X</div><h1>ERROR</h1><p class='contenidoError'>Ha caducado su sesión</p></div></div>");
+                $(".cerrarError").click(function () {
+                    $(".fondo_gris").remove();
+                    $(".fullScreen").remove();
+                    $(".aDesplegar").remove();
+                });
+            })
+ 
             $("#goToProfile").click(function () {
                 console.log(profileShowed);
                 if (!profileShowed) {
