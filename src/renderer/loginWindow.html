@@ -107,13 +107,14 @@
                 });
             })
             ipcRenderer.on("Error_login", function (fallo, rows) {
-                alert("lkasjdfk");
+                alert("Usuario o contraseña incorrecta");
                 $("#contenido").append("<div class='fondo_gris'></div><div class='fullScreen'><div class='aDesplegar'><div class='cerrarError'>X</div><h1>ERROR</h1><p class='contenidoError'>Error en el login</p></div></div>");
                 $(".cerrarError").click(function () {
                     $(".fondo_gris").remove();
                     $(".fullScreen").remove();
                     $(".aDesplegar").remove();
                 });
+                console.log("emm");
             })
  
 
