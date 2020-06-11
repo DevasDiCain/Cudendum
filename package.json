@@ -2,10 +2,12 @@
   "name": "cudendum",
   "version": "1.0.0",
   "description": "Proyecto Final 2ºDaw",
-  "main": "main.js",
+  "main": "./main.js",
   "scripts": {
     "start": "electron .",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "package": "electron-forge package",
+    "make": "electron-forge make"
   },
   "repository": {
     "type": "git",
@@ -32,6 +34,43 @@
     "reverse-md5": "0.0.4"
   },
   "devDependencies": {
-    "electron": "^8.2.5"
+    "babel-plugin-transform-async-to-generator": "^6.24.1",
+    "babel-preset-env": "1.2.2",
+    "babel-preset-react": "^6.24.1",
+    "electron-builder": "^22.7.0",
+    "electron-forge": "^4.2.0",
+    "electron-prebuilt-compile": "1.8.2-beta.3"
+  },
+  "config": {
+    "forge": {
+      "make_targets": {
+        "win32": [
+          "squirrel"
+        ],
+        "darwin": [
+          "zip"
+        ],
+        "linux": [
+          "deb",
+          "rpm"
+        ]
+      },
+      "electronPackagerConfig": {
+        "assar": true
+      },
+      "electronWinstallerConfig": {
+        "name": "OpenChat"
+      },
+      "electronInstallerDebian": {},
+      "electronInstallerRedhat": {},
+      "github_repository": {
+        "owner": "Cudendum",
+        "name": "José Rodríguez Fernández"
+      },
+      "windowsStoreConfig": {
+        "packageName": "",
+        "name": "OpenChat"
+      }
+    }
   }
 }
