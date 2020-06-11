@@ -13,11 +13,11 @@ const almacen = [];
 //$.getScript("https://rezitech.github.com/stash/stash.min.js");//Sesiones
 
 const connection = mysql.createConnection({
-  host: '127.0.0.1',
+  host: 'qyn755.icarosproject.com',
   port: '3306',
-  user: 'root',
-  password: '',
-  database: 'cudendum'
+  user: 'qyn755',
+  password: '7150Icaros',
+  database: 'qyn755'
 })
 var jsdom = require('jsdom');
 $ = require('jquery')(new jsdom.JSDOM().window)
@@ -41,6 +41,7 @@ app.on('ready', function () {
     if (err) {
       console.log(err.code)
       console.log(err.fatal)
+      mainWindow.webContents.send("Error_conec");
     }
   })
   //----------------------------------Creación de las ventanas principales------------------------------------------------
@@ -130,53 +131,60 @@ ipcMain.on('closeRegisterWindow', function () {
     registerWindow.close();
 })
 //ERRORES
-ipcMain.on('empty-field', function () {
-  registerWindow.close();
+ipcMain.on('empty-field', function (event) {
   console.log("Error Registro con campos vacios");
+  event.reply("ERROR-emptyField");
 })
 ipcMain.on('empty-field-edit', function () {
   console.log("Error EDIT, campos vacíos");
 })
 //CAPTURA DE EVENTO DE REGISTRO
-ipcMain.on('register', function (error, usuario, clave, nombre, apellidos, email, telefono) {
-  get("usuarios", "usuario", usuario).then(function (rows) {//Antes de registrar compruebo que no existe una cuenta con el mismo usuario
-    if (typeof rows == "undefined") {
-      register(usuario, clave, nombre, apellidos, email, telefono).then(function () {//SE REGISTRA Y HASTA QUE NO SE LLEVE A CABO NO SE AVANZA
-        registerWindow.close();
-        login(usuario, clave).then(function (rows) {//UNA VEZ SE REGISTRE LOGUEAMOS Y SI TODO VA BIEN AVANZAMOS
-          console.log(rows.length);
-          if (rows.length >= 1) {
-            let user = getSessionValue("usuario").then(function (resolve) { console.log("get Usuario->" + resolve) }).catch((err) => setImmediate(() => { console.log(err) }))
-            let password = getSessionValue("clave").then(function (resolve) { console.log("get clave->" + resolve) }).catch((err) => setImmediate(() => { console.log(err) }))
-            let time = getSessionValue("tiempo").then(function (resolve) { console.log("get tiempo->" + resolve) }).catch((err) => setImmediate(() => { console.log(err) }))
-            if (typeof user != "undefined" && typeof password != "undefined" && typeof time != "undefined") {
-              //Se carga la vista normal
-              mainWindow.loadURL(url.format({
-                pathname: path.join(__dirname, 'src/renderer/views/normal_view.html'),
-                protocol: 'file:',
-                slashes: true
-              }));
-              //necesario para acceder al dom una vez EXISTA
-              mainWindow.webContents.once('did-navigate', () => {
-                mainWindow.webContents.once('dom-ready', () => {
-                  mainWindow.webContents.executeJavaScript("console.log(document.getElementById('mostrarUsuario').innerHTML='" + usuario + "')")
+ipcMain.on('register', function (event, usuario, clave, nombre, apellidos, email, telefono) {
+  if(isNaN(telefono))
+  {
+    mainWindow.webContents.send("Error_tlf");
+  }
+  else
+  {
+    get("cudendum_usuarios", "usuario", usuario).then(function (rows) {//Antes de registrar compruebo que no existe una cuenta con el mismo usuario
+      if (typeof rows == "undefined") {
+        register(usuario, clave, nombre, apellidos, email, telefono).then(function () {//SE REGISTRA Y HASTA QUE NO SE LLEVE A CABO NO SE AVANZA
+          registerWindow.close();
+          login(usuario, clave).then(function (rows) {//UNA VEZ SE REGISTRE LOGUEAMOS Y SI TODO VA BIEN AVANZAMOS
+            if (rows.length >= 1) {
+              let user = getSessionValue("usuario").then(function (resolve) { console.log("get Usuario->" + resolve) }).catch((err) => setImmediate(() => { console.log(err) }))
+              let password = getSessionValue("clave").then(function (resolve) { console.log("get clave->" + resolve) }).catch((err) => setImmediate(() => { console.log(err) }))
+              let time = getSessionValue("tiempo").then(function (resolve) { console.log("get tiempo->" + resolve) }).catch((err) => setImmediate(() => { console.log(err) }))
+              if (typeof user != "undefined" && typeof password != "undefined" && typeof time != "undefined") {
+                //Se carga la vista normal
+                mainWindow.loadURL(url.format({
+                  pathname: path.join(__dirname, 'src/renderer/views/normal_view.html'),
+                  protocol: 'file:',
+                  slashes: true
+                }));
+                //necesario para acceder al dom una vez EXISTA
+                mainWindow.webContents.once('did-navigate', () => {
+                  mainWindow.webContents.once('dom-ready', () => {
+                    mainWindow.webContents.executeJavaScript("console.log(document.getElementById('mostrarUsuario').innerHTML='" + usuario + "')")
+                  })
                 })
-              })
+              }
+              else {
+                console.log("Fallo en la sesión");//Aquí generar popUp de error
+              }
             }
             else {
-              console.log("Fallo en la sesión");//Aquí generar popUp de error
+              console.log("Fallo en el loggin");//Aquí generar popUp de error
             }
-          }
-          else {
-            console.log("Fallo en el loggin");//Aquí generar popUp de error
-          }
-        }).catch((err) => setImmediate(() => { console.log(err); }));
-      }).catch((err) => setImmediate(() => { console.log(err); }));//Aquí recojo el error pero sino lo lanzo
-    }
-    else {
-      console.log("ERROR- El usuario '" + usuario + "' ya se encuentra en la base de datos");
-    }
-  }).catch((err) => setImmediate(() => { console.log(err) }))
+          }).catch((err) => setImmediate(() => { console.log(err); }));
+        }).catch((err) => setImmediate(() => { console.log(err); event.reply("Error_tlf");}));//Aquí recojo el error pero sino lo lanzo
+      }
+      else {
+        console.log("ERROR- El usuario '" + usuario + "' ya se encuentra en la base de datos");
+      }
+    }).catch((err) => setImmediate(() => { console.log(err) }))
+  }
+ 
 })
 //Ir al registro
 ipcMain.on('go-register', function () {
@@ -254,10 +262,11 @@ ipcMain.on('login', function (event, usuario, clave) {
               }));
       }
       else {
-        event.reply("errorLogin");
+        event.reply("Error_login");
         console.log("Fallo en el loggin");//Aquí generar popUp de error
+        mainWindow.webContents.send("Error_login");
       }
-    }).catch((err) => setImmediate(() => { console.log(err); }));//Aquí recojo el error pero sino lo lanzo
+    }).catch((err) => setImmediate(() => { console.log(err);  mainWindow.webContents.send("Error_conec");}));//Aquí recojo el error pero sino lo lanzo
   }
 })
 //CERRAR SESIÓN
@@ -285,32 +294,32 @@ ipcMain.on("sesion-off", function () {
 });
 //IR AL PERFIL
 ipcMain.on("goToProfile", function (event, user) {
-  get("usuarios", "usuario", user).then(function (rows) {//Obtengo los datos 
+  get("cudendum_usuarios", "usuario", user).then(function (rows) {//Obtengo los datos 
     event.reply('showProfile', rows)//Los mando al renderer
   }).catch((err) => setImmediate(() => { console.log(err) }))
 
 });
 //MOSTRAR EDICIÓN DE PERFIL
 ipcMain.on("showEditProfile", function (event, user) {
-  get("usuarios", "usuario", user).then(function (rows) {//Obtengo los datos 
+  get("cudendum_usuarios", "usuario", user).then(function (rows) {//Obtengo los datos 
     event.reply('showEditProfile', rows)//Los mando al renderer
   }).catch((err) => setImmediate(() => { console.log(err) }))
 })
 
 //MODIFICAR EL PERFIL
 ipcMain.on("editProfile", function (event, usuario, clave, nombre, apellido, email, telefono,id_usuario) {
-  get("usuarios", "id_usuario", id_usuario).then(function (rows) {//Obtengo los datos 
+  get("cudendum_usuarios", "id_usuario", id_usuario).then(function (rows) {//Obtengo los datos 
     let query = "";
     if (clave == "") {
       let oldPassword = rows["clave"];
-      query = "UPDATE usuarios SET usuario='" + usuario + "',clave='" + oldPassword + "',nombre='" + nombre + "',apellidos='" + apellido + "',email='" + email + "',telefono='" + telefono + "' WHERE usuario = '" + rows["usuario"] + "' and clave = '" + rows["clave"] + "'";
+      query = "UPDATE cudendum_usuarios SET usuario='" + usuario + "',clave='" + oldPassword + "',nombre='" + nombre + "',apellidos='" + apellido + "',email='" + email + "',telefono='" + telefono + "' WHERE usuario = '" + rows["usuario"] + "' and clave = '" + rows["clave"] + "'";
       updateUser(query, usuario, oldPassword).then(function (rows) {
         event.reply("editCorrect",usuario);
       }).catch((err) => setImmediate(() => { console.log(err) }))
     }
     else {
       clave = md5(clave);
-      query = "UPDATE usuarios SET usuario='" + usuario + "',clave='" + clave + "',nombre='" + nombre + "',apellidos='" + apellido + "',email='" + email + "',telefono='" + telefono + "' WHERE usuario = '" + rows["usuario"] + "' and clave = '" + rows["clave"] + "'";
+      query = "UPDATE cudendum_usuarios SET usuario='" + usuario + "',clave='" + clave + "',nombre='" + nombre + "',apellidos='" + apellido + "',email='" + email + "',telefono='" + telefono + "' WHERE usuario = '" + rows["usuario"] + "' and clave = '" + rows["clave"] + "'";
       updateUser(query, usuario, clave).then(function (rows) {
         event.reply("editCorrect");
       }).catch((err) => setImmediate(() => { console.log(err) }))
@@ -342,7 +351,6 @@ ipcMain.on("deleteAccount", function (event,id_user) {
   }).catch((err) => setImmediate(() => { console.log(err) }))
 })
 ipcMain.on("needHelp", function (event) { //ESTA FUNCION  NO ESTÁ IMPLEMENTADA
-  console.log("hola");
   mainWindow.webContents.executeJavaScript('confirm("¿Desea solicitar ayuda?");').then((result) => {
     if(result)
     {
@@ -356,18 +364,18 @@ ipcMain.on("needHelp", function (event) { //ESTA FUNCION  NO ESTÁ IMPLEMENTADA
 })
 
 ipcMain.on("goToNews", function (event) { 
-      getAll("noticias").then((result)=>{
+      getAll("cudendum_noticias").then((result)=>{
        event.reply("showNews",result)
     }).catch((err) => setImmediate(() => { console.log(err) }))
 })
 //------Administración--------
 ipcMain.on("goToAdministrateUsers",function(event){
-     getAll("usuarios").then((result)=>{
+     getAll("cudendum_usuarios").then((result)=>{
       event.reply("showUsers",result)
   }).catch((err) => setImmediate(() => { console.log(err) }))
 })
 ipcMain.on("goToAdministrateNews",function(event){
-  getAll("noticias").then((result)=>{
+  getAll("cudendum_noticias").then((result)=>{
    event.reply("showNews",result)
 }).catch((err) => setImmediate(() => { console.log(err) }))
 })
@@ -377,7 +385,7 @@ ipcMain.on("addNew",function(event,titulo,copete,cuerpo){
   }).catch((err) => setImmediate(() => { console.log(err) }))
 })
 ipcMain.on("showEditProfileAdmin",function(event,id_user){
-  get("usuarios", "id_usuario", id_user).then(function (rows) {//Obtengo los datos 
+  get("cudendum_usuarios", "id_usuario", id_user).then(function (rows) {//Obtengo los datos 
     event.reply('showEditProfile', rows)//Los mando al renderer
   }).catch((err) => setImmediate(() => { console.log(err) }))
 })
@@ -423,7 +431,7 @@ ipcMain.on('addNewUser', function () {
   Menu.setApplicationMenu(registerMenu);
 })
 ipcMain.on("showEditNews",function(event,id_new){
-  get("noticias", "idNoticia", id_new).then(function (rows) {//Obtengo los datos 
+  get("cudendum_noticias", "idNoticia", id_new).then(function (rows) {//Obtengo los datos 
     event.reply('showEditNew', rows)//Los mando al renderer
   }).catch((err) => setImmediate(() => { console.log(err) }))
 })
@@ -583,7 +591,7 @@ function getAll(table) {
 function register(usuario, clave, nombre, apellidos, email, telefono) {
   return new Promise(function (resolve, reject) {
     let clave_encriptada = md5(clave);
-    let query = "INSERT INTO `usuarios` ( `usuario`, `clave`, `nombre`, `apellidos`, `email`, `tipo`,  `telefono`) VALUES ('" + usuario + "','" + clave_encriptada + "', '" + nombre + "', '" + apellidos + "', '" + email + "', 'normal', '" + telefono + "');"
+    let query = "INSERT INTO `cudendum_usuarios` ( `usuario`, `clave`, `nombre`, `apellidos`, `email`, `tipo`,  `telefono`) VALUES ('" + usuario + "','" + clave_encriptada + "', '" + nombre + "', '" + apellidos + "', '" + email + "', 'normal', '" + telefono + "');"
     console.log(query);
 
     connection.query(query, function (err, rows, fields) {
@@ -602,7 +610,7 @@ function login(usuario, clave) {
   return new Promise(function (resolve, reject) {
     clave = md5(clave);
 
-    let query = "SELECT * FROM usuarios where usuario='" + usuario + "' and clave = '" + clave + "'"
+    let query = "SELECT * FROM cudendum_usuarios where usuario='" + usuario + "' and clave = '" + clave + "'"
     console.log(query);
 
     connection.query(query, function (err, rows, fields) {
@@ -648,7 +656,7 @@ function updateUser(query, usuario, clave) {
 //DELETE user
 function deleteAccount(id_usuario){
   return new Promise(function (resolve, reject) {
-    let query="DELETE from usuarios where id_usuario='"+id_usuario+"'";
+    let query="DELETE from cudendum_usuarios where id_usuario='"+id_usuario+"'";
     console.log(query);
 
     connection.query(query, function (err, rows, fields) {
@@ -668,7 +676,7 @@ function deleteAccount(id_usuario){
 
 function addNew(titulo,copete,cuerpo){
   return new Promise(function (resolve, reject) {
-    let query='INSERT into noticias (titulo,copete,cuerpo) values ("'+titulo+'","'+copete+'","'+cuerpo+'")';
+    let query='INSERT into cudendum_noticias (titulo,copete,cuerpo) values ("'+titulo+'","'+copete+'","'+cuerpo+'")';
     console.log(query);
 
     connection.query(query, function (err, rows, fields) {
@@ -684,7 +692,7 @@ function addNew(titulo,copete,cuerpo){
 //UPDATE news
 function updateNews( titulo, copete,cuerpo,idNoticia) {
   return new Promise(function (resolve, reject) {
-    let query='UPDATE  noticias set titulo="'+titulo+'", copete="'+copete+'",cuerpo="'+cuerpo+'" where idNoticia= "'+idNoticia+'"';
+    let query='UPDATE  cudendum_noticias set titulo="'+titulo+'", copete="'+copete+'",cuerpo="'+cuerpo+'" where idNoticia= "'+idNoticia+'"';
     console.log(query);
 
     connection.query(query, function (err, rows, fields) {
@@ -699,7 +707,7 @@ function updateNews( titulo, copete,cuerpo,idNoticia) {
 //DELETE new
 function deleteNew(id_new){
   return new Promise(function (resolve, reject) {
-    let query="DELETE from noticias where idNoticia='"+id_new+"'";
+    let query="DELETE from cudendum_noticias where idNoticia='"+id_new+"'";
     console.log(query);
 
     connection.query(query, function (err, rows, fields) {
